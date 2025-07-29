@@ -5,4 +5,7 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
+char *append_file_extension(const char *base,const char *ext);
+
+
 #endif //HELPERS_H

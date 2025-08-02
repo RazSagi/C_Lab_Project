@@ -7,4 +7,4 @@
 #define MAX_LINE_LENGTH 80
 #define LINE_BUFFER (MAX_LINE_LENGTH + 2)
 
-#endif //GLOBALS_H
+#endif

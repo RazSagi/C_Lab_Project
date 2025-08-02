@@ -8,4 +8,4 @@
 char *append_file_extension(const char *base,const char *ext);
 
 
-#endif //HELPERS_H
+#endif

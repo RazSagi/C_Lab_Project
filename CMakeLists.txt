@@ -12,5 +12,7 @@ file(GLOB SRC_FILES "core/*.c")
 add_executable(assembler ${SRC_FILES}
         core/preproc.c
         headers/preproc.h
+        core/macro_list.c
+        headers/macro_list.h
 )
 

@@ -1,0 +1,6 @@
+mcro HELLO
+PRINT #42
+mcroend
+
+HELLO
+MOV R1,R2

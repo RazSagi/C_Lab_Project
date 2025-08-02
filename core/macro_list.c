@@ -64,7 +64,8 @@ int ml_add(MacroList *list, const char *name,const char *body)
 /*looking for Macro by name*/
 const char *ml_lookup(const MacroList *list, const char *name)
 {
-    for (MacroNode *p = list->head; p; p=p->next)
+    MacroNode *p=list->head;
+    for (p = list->head; p; p=p->next)
     {
         if (strcmp(p->name, name) == 0)/*if exist, return the macro*/
         {

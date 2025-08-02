@@ -22,3 +22,54 @@ MacroList *ml_create(void)
     if (L) L->head = NULL;
     return L;
 }
+/*Deleting Macro list and freeing memory*/
+void ml_delete(MacroList *L)
+{
+    MacroNode *p=L->head;
+    while (p)
+    {
+        MacroNode *n = p->next;
+        free(p->name);
+        free(p->body);
+        free(p);
+        p=n;
+    }
+    free(L);
+}
+typedef enum
+{
+    ML_OK = 0,
+    ML_ERROR_NODE = 1,
+    ML_ERROR_NAMED = 2
+}ML_Error;
+/*Adding new Node(Macro) to the list*/
+int ml_add(MacroList *list, const char *name,const char *body)
+{
+    MacroNode *node = malloc(sizeof *node);
+    if (!node) return ML_ERROR_NODE;
+    node->name = strdup(name);
+    node->body = strdup(body);
+    if (!node->name || !node->body)
+    {
+        free(node->name);
+        free(node->body);
+        free(node);
+        return ML_ERROR_NAMED;
+    }
+    node->next = list->head;
+    list->head = node;
+    return ML_OK;
+}
+
+/*looking for Macro by name*/
+const char *ml_lookup(const MacroList *list, const char *name)
+{
+    for (MacroNode *p = list->head; p; p=p->next)
+    {
+        if (strcmp(p->name, name) == 0)/*if exist, return the macro*/
+        {
+            return p->body;
+        }
+    }
+    return NULL;
+}

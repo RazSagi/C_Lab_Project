@@ -1,6 +1,6 @@
-//
+/*
 // Created by Raz Sagi on 29/07/2025.
-//
+*/
 
 #include <stdio.h>
 #include <stdlib.h>

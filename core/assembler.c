@@ -16,6 +16,7 @@ int second_pass(const char *file_name);
 int main(int argc, char *argv[])
 {
     int i, err=0;
+    int rc;
     if (argc<2)
     {
         fprintf(stderr,"Using: assembler <basefile> [<basefile>...]\n");
@@ -33,10 +34,12 @@ int main(int argc, char *argv[])
             err=1;
             continue;
         }
-        if (run_preprocessor(in, out)!=0)
-        {
-            fprintf(stderr,"Failed pre processing");
-            err=1;
+        rc = run_preprocessor(in,out);
+        if (rc != PREPROC_OK) {
+            fprintf(stderr,"Error: preprocessing '%s' failed (code %d)\n",in, rc);
+            err = 1;
+        } else {
+            printf(" good\n");
         }
         free(in);
         free(out);

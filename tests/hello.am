@@ -1,18 +1,9 @@
-mcro HELLO
+
     .string "Hello, world!"
-mcroend
 
-HELLO
 
-mcro DATA3
     .data 10, 20, 30
-mcroend
 
-DATA3
-
-mcro EMPTY
-mcroend
-EMPTY
 
 mov r1, r2
 prn r1

@@ -6,6 +6,7 @@
 #include <string.h>
 #include "globals.h"
 #include <stdlib.h>
+#include "helpers.h"
 /*This method gets a pointer to line and returns if there is "real" char there
  * this checks also if this line starts with ';'
  */
@@ -51,7 +52,7 @@ int run_preprocessor(const char *in_path,char *out_path)
 
     /*trying to open the file*/
     in=fopen(in_path,"r");
-    if (in==NULL)
+    if (!in)
     {
         return PREPROC_ERR_OPEN_IN;
     }
@@ -98,26 +99,130 @@ int run_preprocessor(const char *in_path,char *out_path)
             continue;
         }
         /*If the line is a already used macro, enroll the macro to the output file and move forward*/
-        const char *body = ml_lookup(macros,token);
-        if (body !=NULL)
+        if (!in_macro)
         {
-            if (!out)
+            const char *body = ml_lookup(macros,token);
+            if (body !=NULL)
             {
-                out = fopen(out_path,"w");
-                if (!out)/*couldent open the output file*/
+                if (!out)
+                {
+                    out = fopen(out_path,"w");
+                    if (!out)/*couldent open the output file*/
+                    {
+                        free(cur_body);
+                        ml_delete(macros);
+                        fclose(in);
+                        return PREPROC_ERR_OPEN_OUT;
+                    }
+                }
+                fputs(body,out);
+                continue;
+            }
+        }
+        /*Not in Macro, looking for starts of macro*/
+        if (!in_macro && token)
+        {
+            char *firstword = token;
+            char *restword = token;
+            /*iterate throught the first word until its end*/
+            while (*restword && *restword!=' '&&*restword!='\t' && *restword!='\n'&&*restword!='\r')
+            {
+                restword ++;
+            }
+            if (*restword)
+            {
+                *restword = '\0';
+                restword ++;
+            }
+
+            if (strcmp(firstword,"mcro")==0)/*found start of mcro*/
+            {
+                char *name = restword;
+                while (*name == ' '|| *name=='\t') name++;
+
+                /*if the macro name is empty, closing the file*/
+                if (*name=='\0')
                 {
                     free(cur_body);
                     ml_delete(macros);
                     fclose(in);
-                    return PREPROC_ERR_OPEN_OUT;
+                    if (out) fclose(out);
+                    return PREPROC_ERR_MACRO_NAME_INVALID;
                 }
+
+                /*closing the macro name (eliminate ws after the word)*/
+                char *end = name;
+                while (*end && *end!=' '&&*end!='\t'&&*end!='\n'&&*end!='\r')
+                {
+                    end++;
+                }
+                *end='\0';
+
+                /*checking if the macro name is reserved word*/
+                if (is_reserved(name))
+                {
+                    free(cur_body);
+                    ml_delete(macros);
+                    fclose(in);
+                    if (out) fclose(out);
+                    return PREPROC_ERR_MACRO_NAME_INVALID;
+                }
+
+                /*success, we found start of macro. proceeding to define it*/
+                strncpy(cur_name,name,MAX_LABEL_LENGTH);
+                cur_name[MAX_LABEL_LENGTH-1]='\0';
+                in_macro = 1;/*next loop we will just copy the rows until finding the "mcroend" line */
+                free(cur_body);/*reseting the cur_body to prevent leaking*/
+                cur_body = strdup("");
+                if (!cur_body)
+                {
+                    ml_delete(macros);
+                    fclose(in);
+                    if (out) fclose(out);
+                    return PREPROC_ERR_OUT_MEMORY;
+                }
+                continue;
             }
-            fputs(body,out);
+        }
+        /*Inside macro, checking if we reached to the end.if not, adding the curr line to the body of the macro*/
+        if (in_macro)
+        {
+            if (strcmp(token,"mcroend")==0 && only_ws_after(token+strlen("mcroend")))/* reached end of macro, entering the macro to the our list */
+            {
+                ml_add(macros,cur_name,cur_body);
+                in_macro = 0;
+            }
+            else
+            {
+                size_t old = strlen(cur_body);
+                cur_body = realloc(cur_body,old + strlen(line)+1);
+                strcpy(cur_body+old,line);
+            }
             continue;
         }
-
-
-
-
+        /* regular line, no changes need to be dont. plain copy */
+        if (!out)
+        {
+            out = fopen(out_path,"w");
+            if (!out)
+            {
+                free(cur_body);
+                ml_delete(macros);
+                fclose(in);
+                return PREPROC_ERR_OPEN_OUT;
+            }
+        }
+        fputs(line,out);
     }
+    /*cleaning memory*/
+    free(cur_body);
+    ml_delete(macros);
+    if (out) fclose(out);
+    fclose(in);
+    return PREPROC_OK;
 }
+
+
+
+
+

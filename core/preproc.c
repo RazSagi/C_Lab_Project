@@ -6,7 +6,9 @@
 #include <string.h>
 #include "globals.h"
 #include <stdlib.h>
-/*This method gets a pointer to line and returns if there is "real" char there*/
+/*This method gets a pointer to line and returns if there is "real" char there
+ * this checks also if this line starts with ';'
+ */
 static char* first_letter(char *line)
 {
     char *curr = line;
@@ -14,12 +16,25 @@ static char* first_letter(char *line)
     {
         curr++;
     }
-    if (*curr == '\0'||*curr == '\n'||*curr == '\r')
+    if (*curr == '\0'||*curr == '\n'||*curr == '\r'||*curr == ';')
     {
         return NULL;
     }
     return curr;
 
+}
+/*this method checks if there is chars after mcro\mcroend that isnt WS*/
+static int only_ws_after(const char *p)
+{
+    while (*p!='\0'&&*p!='\n'&&*p!='\r')
+    {
+        if (*p!=' '&&*p!='\t')
+        {
+            return 0;
+        }
+        p++;
+    }
+    return 1;
 }
 
 

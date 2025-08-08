@@ -10,6 +10,7 @@
 #include "globals.h"
 #include "helpers.h"
 #include "preproc.h"
+#include "context_asm.h"
 
 
 int main(int argc, char *argv[])
@@ -18,6 +19,7 @@ int main(int argc, char *argv[])
     int all_err=0;
     int fp_err=0;
     int rc;
+    CtxAsm ctx;
     if (argc<2)
     {
         printf("Using: assembler <basefile> [<basefile>...]\n");
@@ -45,7 +47,7 @@ int main(int argc, char *argv[])
             free(out);
             continue;
         }
-        fp_err=run_first_pass(out);
+        fp_err=run_first_pass(out, &ctx);
         if (fp_err<0)
         {
             printf("Error, couldent open file");

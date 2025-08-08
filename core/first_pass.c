@@ -7,13 +7,18 @@
 #include "helpers.h"
 
 
-int run_first_pass(const char *am_file)
+int run_first_pass(const char *am_file,CtxAsm *ctx)
 {
     FILE *in=fopen(am_file,"r");/*open the am file recived by the pre-proc*/
     char line[LINE_BUFFER];
     int line_number=0;
-    int err_count=0;
-    char *p=NULL;
+
+    /*starting the context assembler struct*/
+    ctx->IC = IC_START;
+    ctx->DC = 0;
+    ctx->error_count = 0;
+
+
 
     if(!in)
     {
@@ -22,6 +27,7 @@ int run_first_pass(const char *am_file)
     }
     while(fgets(line,LINE_BUFFER,in))
     {
+        char *p=NULL;
         line_number++;
         line[strcspn(line,"\n")]='\0';/*removing excess char at the end of the line*/
         p = first_letter(line);
@@ -31,11 +37,12 @@ int run_first_pass(const char *am_file)
         }
         if (strlen(p)<1000)
         {
-            err_count++;
+            ctx->error_count++;
         }
         printf("line %d: %s\n",line_number,p);
 
     }
-    return err_count;
+    fclose(in);
+    return ctx->error_count;
 
 }

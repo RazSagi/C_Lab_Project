@@ -61,3 +61,15 @@ char* first_letter(char *line)
     return curr;
 
 }
+int is_letter(char c)
+{
+    return (c>='A'&&c<='Z') || (c>='a'&&c<='z');
+}
+int is_digit(char c)
+{
+    return (c>='0'&&c<='9');
+}
+int is_alphanumeric(char c)
+{
+    return (is_digit(c)||is_letter(c));
+}

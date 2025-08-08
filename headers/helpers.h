@@ -11,6 +11,8 @@ char* first_letter(char *line);
 int is_letter(char c);
 int is_digit(char c);
 int is_alphanumeric(char c);
+char *my_strdup(const char *s);
+
 
 
 #endif

@@ -172,7 +172,7 @@ int run_preprocessor(const char *in_path,char *out_path)
                     cur_name[MAX_LABEL_LENGTH-1]='\0';
                     in_macro = 1;/*next loop we will just copy the rows until finding the "mcroend" line */
                     free(cur_body);/*reseting the cur_body to prevent leaking*/
-                    cur_body = strdup("");
+                    cur_body = my_strdup("");
                     if (!cur_body)
                     {
                         ml_delete(macros);

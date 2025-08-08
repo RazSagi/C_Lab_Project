@@ -4,6 +4,8 @@
 #include <string.h>
 #include "macro_list.h"
 
+#include "helpers.h"
+
 typedef struct MacroNode
 {
     char *name;
@@ -47,8 +49,8 @@ int ml_add(MacroList *list, const char *name,const char *body)
 {
     MacroNode *node = malloc(sizeof *node);
     if (!node) return ML_ERROR_NODE;
-    node->name = strdup(name);
-    node->body = strdup(body);
+    node->name = my_strdup(name);
+    node->body = my_strdup(body);
     if (!node->name || !node->body)
     {
         free(node->name);

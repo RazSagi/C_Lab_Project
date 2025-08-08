@@ -16,6 +16,9 @@
 #define PREPROC_ERR_LINE_TOO_LONG 4
 #define PREPROC_ERR_MACRO_NAME_INVALID  5
 
+#define IC_START 100;
+
+
 
 
 

@@ -7,7 +7,7 @@
 
 char *append_file_extension(const char *base,const char *ext);
 int is_reserved(const char *name);
-static char* first_letter(char *line);
+char* first_letter(char *line);
 
 
 #endif

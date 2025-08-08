@@ -47,3 +47,17 @@ int is_reserved(const char *name)
     }
     return 0;
 }
+static char* first_letter(char *line)
+{
+    char *curr = line;
+    while (*curr==' '||*curr=='\t')
+    {
+        curr++;
+    }
+    if (*curr == '\0'||*curr == '\n'||*curr == '\r'||*curr == ';')
+    {
+        return NULL;
+    }
+    return curr;
+
+}

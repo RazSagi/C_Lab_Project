@@ -10,20 +10,7 @@
 /*This method gets a pointer to line and returns if there is "real" char there
  * this checks also if this line starts with ';'
  */
-static char* first_letter(char *line)
-{
-    char *curr = line;
-    while (*curr==' '||*curr=='\t')
-    {
-        curr++;
-    }
-    if (*curr == '\0'||*curr == '\n'||*curr == '\r'||*curr == ';')
-    {
-        return NULL;
-    }
-    return curr;
 
-}
 /*this method checks if there is chars after mcro\mcroend that isnt WS*/
 static int only_ws_after(const char *p)
 {
@@ -94,7 +81,7 @@ int run_preprocessor(const char *in_path,char *out_path)
             free(cur_body);
             ml_delete(macros);
             fclose(in);
-            if (out) fclose(out);
+            fclose(out);
             return PREPROC_ERR_LINE_TOO_LONG;
         }
 
@@ -103,10 +90,7 @@ int run_preprocessor(const char *in_path,char *out_path)
         /*if line is empty\start with ; write the line to the out file */
         if (!token)
         {
-            if (out)
-            {
-                fputs(line,out);
-            }
+            fputs(line,out);
             continue;
         }
         /*If the line is a already used macro, enroll the macro to the output file and move forward*/
@@ -126,16 +110,8 @@ int run_preprocessor(const char *in_path,char *out_path)
 
             /* restore the original character */
             *sep = saved;
-            if (body) {
-                if (!out) {
-                    out = fopen(out_path, "w");
-                    if (!out) {
-                        free(cur_body);
-                        ml_delete(macros);
-                        fclose(in);
-                        return PREPROC_ERR_OPEN_OUT;
-                    }
-                }
+            if (body)
+            {
                 fputs(body, out);
                 continue;
             }
@@ -169,7 +145,7 @@ int run_preprocessor(const char *in_path,char *out_path)
                         free(cur_body);
                         ml_delete(macros);
                         fclose(in);
-                        if (out) fclose(out);
+                        fclose(out);
                         return PREPROC_ERR_MACRO_NAME_INVALID;
                     }
 
@@ -187,7 +163,7 @@ int run_preprocessor(const char *in_path,char *out_path)
                         free(cur_body);
                         ml_delete(macros);
                         fclose(in);
-                        if (out) fclose(out);
+                        fclose(out);
                         return PREPROC_ERR_MACRO_NAME_INVALID;
                     }
 
@@ -201,7 +177,7 @@ int run_preprocessor(const char *in_path,char *out_path)
                     {
                         ml_delete(macros);
                         fclose(in);
-                        if (out) fclose(out);
+                        fclose(out);
                         return PREPROC_ERR_OUT_MEMORY;
                     }
                     restword--;
@@ -232,23 +208,12 @@ int run_preprocessor(const char *in_path,char *out_path)
             continue;
             }
         /* regular line, no changes need to be dont. plain copy */
-        if (!out)
-        {
-            out = fopen(out_path,"w");
-            if (!out)
-            {
-                free(cur_body);
-                ml_delete(macros);
-                fclose(in);
-                return PREPROC_ERR_OPEN_OUT;
-            }
-        }
         fputs(line,out);
     }
     /*cleaning memory*/
     free(cur_body);
     ml_delete(macros);
-    if (out) fclose(out);
+    fclose(out);
     fclose(in);
     return PREPROC_OK;
 }

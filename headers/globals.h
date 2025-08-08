@@ -16,7 +16,14 @@
 #define PREPROC_ERR_LINE_TOO_LONG 4
 #define PREPROC_ERR_MACRO_NAME_INVALID  5
 
-#define IC_START 100;
+#define SRC_LINE_MAX MAX_LINE_LENGTH
+#define READ_BUF_SIZE 512
+#define IC_INIT 100
+#define DC_INIT 0
+#define MAX_REGS 8
+#define MAX_OPERANDS 2
+
+#define IC_START 100
 
 
 

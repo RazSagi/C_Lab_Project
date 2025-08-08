@@ -35,7 +35,7 @@ int extract_label(const char **p,char out_label[MAX_LABEL_LENGTH])
         return 0;
     }
     s++;
-    while (!is_alphanumeric(*s))
+    while (is_alphanumeric(*s))
     {
         s++;
     }

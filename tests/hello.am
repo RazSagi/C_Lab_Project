@@ -1,13 +1,19 @@
-MAIN: mov M1[r2][r7],LENGTH
- add r2,STR
-LOOP: jmp END
- prn #-5
- sub r1, r4
- inc K
-mov M1[r3][r3],r3
- bne LOOP
-END: stop
-STR: .string “abcdef”
-LENGTH: .data 6,-9,15
-K: .data 22
-M1: .mat [2][2] 1,2,3,4
+; ---- test file for first pass ----
+
+; comment line should be skipped
+MAIN:   mov r3, r5      ; label + opcode
+        add r2, r7      ; no label
+LOOP:   cmp r1, r2
+        bne END
+        stop
+
+; directive with label
+DATA1:  .data 5, -3, 15
+
+; directive without label
+        .string "Hello"
+
+; reserved name as label (should error)
+mov:    add r1, r2
+
+END:    rts

@@ -5,6 +5,7 @@
 #include <string.h>
 #include "globals.h"
 #include "helpers.h"
+#include "parser.h"
 
 
 int run_first_pass(const char *am_file,CtxAsm *ctx)
@@ -28,18 +29,32 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
     while(fgets(line,LINE_BUFFER,in))
     {
         char *p=NULL;
+        const char *pc;
+        char label[MAX_LABEL_LENGTH];
+        int lbl_stat;
+
         line_number++;
-        line[strcspn(line,"\n")]='\0';/*removing excess char at the end of the line*/
+
+        line[strcspn(line,"\r\n")]='\0';/*removing excess char at the end of the line*/
         p = first_letter(line);
         if (p==NULL)
         {
             continue;
         }
-        if (strlen(p)<1000)
+        pc = p;
+        /* checking if the current line starts with label*/
+        lbl_stat = extract_label(&pc,label);
+        if (lbl_stat==-1)
         {
             ctx->error_count++;
+            continue;
         }
-        printf("line %d: %s\n",line_number,p);
+        if (lbl_stat==1)
+        {
+            printf("Debugging line %d label=%s\n",line_number,label);
+        }
+        printf("debugging line %d rest=%s\n",line_number,pc);
+
 
     }
     fclose(in);

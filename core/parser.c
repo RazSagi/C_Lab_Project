@@ -176,13 +176,14 @@ static int parse_signed_int(const char **p, long *out)
 {
     const char *s = *p;
     const char *end;
+    long v;
     skip_spaces(&s);
     /*checking if number*/
     if (!(*s == '-' || *s == '+' || (*s >= '0' && *s <= '9') ))
     {
         return 0;
     }
-    long v = strtol(s,(char **)&end,10);
+    v = strtol(s,(char **)&end,10);
     if (end ==s)
     {
         return 0;
@@ -190,4 +191,70 @@ static int parse_signed_int(const char **p, long *out)
     *out = v;
     *p=end;
     return 1;
+}
+/*if possible, store the word and bump the counter*/
+static int store_word(CtxAsm *ctx, int value, int line_number)
+{
+    if (ctx->DC >= MAX_DATA)
+    {
+        printf("Error (line %d), data overflow\n",line_number);
+        ctx->error_count++;
+        return 0;
+    }
+    ctx->data_img[ctx->DC++] = value;
+    return 1;
+}
+
+/*handles directive data*/
+int handle_data(const char **p,CtxAsm *ctx, int line_number)
+{
+    const char *s = *p;
+    long v;
+
+    if (!parse_signed_int(&s,&v))
+    {
+        printf("Error (line %d), data expects at least one integer\n",line_number);
+        ctx->error_count++;
+        return 0;
+    }
+
+    if (!store_word(ctx,(int)v,line_number))
+    {
+        return 0;
+    }
+
+    for (;;)
+    {
+        const char *q = s;
+        skip_spaces(&q);
+        /* if we arrived to comma*/
+        if (*q != ',')
+        {
+            s=q;
+            break;
+        }
+        q++; /* moving after the comma*/
+        skip_spaces(&q);
+
+        if (*q == ',' || *q == '\0')
+        {
+            printf("error (line %d), invalid using comma in .data\n",line_number);
+            ctx->error_count++;
+            return 0;
+        }
+        if (!parse_signed_int(&q,&v))
+        {
+            printf("Error (line %d), missing value after comma\n",line_number);
+            ctx->error_count++;
+            return 0;
+        }
+        if (!store_word(ctx,(int)v,line_number))
+        {
+            return 0;
+            s=q;
+        }
+    }
+    *p=s;
+    return 1;
+
 }

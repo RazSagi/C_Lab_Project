@@ -19,6 +19,7 @@ typedef struct
     char name[MAX_LABEL_LENGTH];
     int value;
     SymKind kind;
+    int is_entry;
 }Symbol;
 
 /*reset the table between files*/

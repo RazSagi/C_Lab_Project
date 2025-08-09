@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "helpers.h"
 #include "parser.h"
-
+#include "sym_table.h"
 
 
 int run_first_pass(const char *am_file,CtxAsm *ctx)
@@ -59,6 +59,22 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
             if (*pc== '.' && kind == DIR_NONE)
             {
                 continue;
+            }
+
+            /*found label followed by directive*/
+            if (*pc == '.' && kind !=DIR_NONE)
+            {
+                /*checking if data like directives*/
+                if (kind == DIR_DATA || kind == DIR_MAT || kind == DIR_STRING)
+                {
+                    if (!sym_table_add(label,ctx->DC,SYM_DATA))
+                    {
+                        printf("Error (line %d), duplicate for symbol '%s' \n",line_number,label);
+                        ctx->error_count++;
+                        continue;
+                    }
+
+                }
             }
 
         }

@@ -51,6 +51,7 @@ int sym_table_add(const char *name, int value, SymKind kind)
 
     g_symbols[g_sym_count].value = value;
     g_symbols[g_sym_count].kind = kind;
+    g_symbols[g_sym_count].is_entry = 0;
 
     g_sym_count++;
     return 1;

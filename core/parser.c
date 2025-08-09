@@ -1,8 +1,9 @@
 /*  Created by razsa on 8/8/2025  */
 
 #include "parser.h"
-
+#include <stdlib.h>
 #include <stdio.h>
+
 
 #include "helpers.h"
 #include <string.h>
@@ -169,4 +170,24 @@ int check_directive_type(const char **p,int line_number,CtxAsm *ctx)
 
 
 
+}
+/*working with signded int*/
+static int parse_signed_int(const char **p, long *out)
+{
+    const char *s = *p;
+    const char *end;
+    skip_spaces(&s);
+    /*checking if number*/
+    if (!(*s == '-' || *s == '+' || (*s >= '0' && *s <= '9') ))
+    {
+        return 0;
+    }
+    long v = strtol(s,(char **)&end,10);
+    if (end ==s)
+    {
+        return 0;
+    }
+    *out = v;
+    *p=end;
+    return 1;
 }

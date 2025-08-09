@@ -25,5 +25,6 @@ int extract_label(const char **p,char out_label[MAX_LABEL_LENGTH]);
 int read_word(const char **p,char *out,size_t out_sz);
 void skip_spaces(const char **p);
 int check_directive_type(const char **p,int line_number,CtxAsm *ctx);
+int handle_data(const char **p,CtxAsm *ctx, int line_number);
 
 #endif

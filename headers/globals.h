@@ -25,6 +25,8 @@
 #define MAX_OPERANDS 2
 
 #define IC_START 100
+#define DC_START 0
+#define MAX_DATA 256
 
 
 

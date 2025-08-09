@@ -74,6 +74,15 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
                         continue;
                     }
 
+                    /*to add, handles to data\string\mat and add to dc*/
+
+                }
+
+                else
+                {
+                    printf("Error (line %d), label before .entry is invalid '%s' \n",line_number,label);
+                    ctx->error_count++;
+                    continue;
                 }
             }
 

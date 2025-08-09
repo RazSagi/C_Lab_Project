@@ -8,11 +8,14 @@
 #include "parser.h"
 
 
+
 int run_first_pass(const char *am_file,CtxAsm *ctx)
 {
     FILE *in=fopen(am_file,"r");/*open the am file recived by the pre-proc*/
     char line[LINE_BUFFER];
     int line_number=0;
+    const char *tmp;
+    int kind;
 
     /*starting the context assembler struct*/
     ctx->IC = IC_START;
@@ -51,9 +54,15 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
         }
         if (lbl_stat==1)
         {
-            printf("Debugging line %d label=%s\n",line_number,label);
+            tmp = pc;
+            kind = check_directive_type(&tmp,line_number,ctx);
+            if (*pc== '.' && kind == DIR_NONE)
+            {
+                continue;
+            }
+
         }
-        printf("debugging line %d rest=%s\n",line_number,pc);
+
 
 
     }

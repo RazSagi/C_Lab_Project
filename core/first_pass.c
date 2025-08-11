@@ -106,12 +106,14 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
                         printf("Error (line %d), invalid text after directive \n",line_number);
                         ctx->error_count++;
                     }
+                    continue;
                 }
 
                 else
                 {
                     printf("Error (line %d), label before .entry is invalid '%s' \n",line_number,label);
                     ctx->error_count++;
+                    continue;
                 }
             }
 

@@ -251,10 +251,51 @@ int handle_data(const char **p,CtxAsm *ctx, int line_number)
         if (!store_word(ctx,(int)v,line_number))
         {
             return 0;
-            s=q;
+
         }
+        s=q;
     }
     *p=s;
     return 1;
 
+}
+/*handles .string and update the dc*/
+int handle_string(const char **p,CtxAsm *ctx, int line_number)
+{
+    const char *s = *p;
+
+    if (*s != '"')
+    {
+        printf("Error (line %d), must sstart with quote\n",line_number);
+        ctx->error_count++;
+        return 0;
+    }
+    /*skip the quote*/
+    s++;
+
+    /*now we store each char until reaching quote or EOL*/
+    while (*s && *s !='"')
+    {
+        if (!store_word(ctx,(int)(unsigned char)*s,line_number))
+        {
+            return 0;
+        }
+        s++;
+    }
+    /*must end with quote =)*/
+    if (*s != '"')
+    {
+        printf("Error (line %d), must end with quote\n",line_number);
+        ctx->error_count++;
+        return 0;
+    }
+    s++;
+
+    /*storing the null ender also*/
+    if (!store_word(ctx,0,line_number))
+    {
+        return 0;
+    }
+    *p=s;
+    return 1;
 }

@@ -83,9 +83,10 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
                     }
                     else if (kind == DIR_STRING)
                     {
-                        printf("Error (line %d), .string not implemented yet\n", line_number);
-                        ctx->error_count++;
-                        ok = 0;
+                        if (!handle_string(&tmp,ctx,line_number))
+                        {
+                            ok = 0;
+                        }
                     }
                     else
                     {

@@ -315,7 +315,7 @@ static int parse_dim_brackets(const char **p, long *out, int line_number)
     }
     /*move past the '['*/
     s++;
-    //checking if what after the brackets is positive number(dimension cant be negative or char)*/
+    /*checking if what after the brackets is positive number(dimension cant be negative or char)*/
     if (!parse_signed_int(&s,&v)|| v<=0)
     {
         printf("Error (line %d), in .mat the dimension must be positive number '['\n",line_number);
@@ -416,12 +416,12 @@ int handle_mat(const char **p,CtxAsm *ctx, int line_number)
 
         if (*q == ',' || *q == '\0')
         {
-            printf("Error (line %d), double comma or comma without integer after\n",line_number)
+            printf("Error (line %d), double comma or comma without integer after\n",line_number);
             ctx->error_count++;
             return 0;
         }
 
-        if (!parse_signed_int(&q,&v)
+        if (!parse_signed_int(&q,&v))
         {
             printf("Error (line %d), missing value after comma\n",line_number);
             ctx->error_count++;
@@ -442,7 +442,6 @@ int handle_mat(const char **p,CtxAsm *ctx, int line_number)
         }
         count++;
         s=q;
-
 
     }
 

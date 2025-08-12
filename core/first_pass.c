@@ -16,6 +16,7 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
     int line_number=0;
     const char *tmp;
     int kind;
+    int ok = 1;
 
     /*starting the context assembler struct*/
     ctx->IC = IC_START;
@@ -73,7 +74,7 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
                         ctx->error_count++;
                         continue;
                     }
-                    int ok = 1;
+                    ok = 1;
                     if (kind == DIR_DATA)
                     {
                         if (!handle_data(&tmp,ctx,line_number))

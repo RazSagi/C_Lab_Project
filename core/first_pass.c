@@ -122,14 +122,11 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
            /* there is no directive after the label, hence continue checking what after the label*/
             const char *t = pc;
             skip_spaces(&t);
-            /*only label without any other chars after it, defining the symbol in currect IC*/
-            if (*t == '\0')
+            /*only label without any other chars after it, error*/
+            if (*t == '\0' || *t == ';')
             {
-                if (!sym_table_add(label, ctx->IC,SYM_CODE))
-                {
-                    printf("Error (line %d), duplicate for symbol '%s' \n",line_number,label);
-                    ctx->error_count++;
-                }
+                printf("Error (line %d), no command after label \n",line_number,label);
+                ctx->error_count++;
                 continue;
             }
 

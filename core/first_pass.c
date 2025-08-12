@@ -88,11 +88,13 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
                             ok = 0;
                         }
                     }
-                    else
+                    else /*dir_mat*/
                     {
-                        printf("Error (line %d), .mat not implemented yet\n", line_number);
-                        ctx->error_count++;
-                        ok = 0;
+                        if (!handle_mat(&tmp,ctx,line_number))
+                        {
+                            ok = 0;
+                        }
+
                     }
                     /*handler failed and return an error already, mobing to next line*/
                     if (!ok)

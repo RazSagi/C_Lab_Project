@@ -336,5 +336,128 @@ static int parse_dim_brackets(const char **p, long *out, int line_number)
 }
 
 /*same as handle string and handle data, handles mat
- *
+ *if we given less values that the dimensions we fill the rest of the matrix with zero
+ *return an error if too many values given
  */
+int handle_mat(const char **p,CtxAsm *ctx, int line_number)
+{
+    const char *s = *p;
+    long rows;
+    long cols;
+    long v;
+    int total = 0;
+    int count = 0;
+
+    /*start to check if rows are ok followed by col
+     *only the dimension declartion */
+    if (!parse_dim_brackets(&s,&rows,line_number))
+    {
+        ctx->error_count++;
+        return 0;
+    }
+    if (!parse_dim_brackets(&s,&cols,line_number))
+    {
+        ctx->error_count++;
+        return 0;
+    }
+
+    total = (int)(rows*cols);
+
+    /*checking data section overflow*/
+    if (ctx->DC + total > MAX_DATA)
+    {
+        printf("Error (line %d), data overflow\n",line_number);
+        ctx->error_count++;
+        return 0;
+    }
+
+    skip_spaces(&s);
+    /* if there is no list to initialize, filling zeros*/
+    if (*s == '\0')
+    {
+        int i;
+        for (i=0; i<total; i++)
+        {
+            if (!store_word(ctx,0,line_number))
+            {
+                return 0;
+            }
+        }
+        *p=s;
+        return 1;
+    }
+
+    /*there is text we need to parse and handle*/
+    if (!parse_signed_int(&s,&v))
+    {
+        printf("Error (line %d), expecting integer list after dimensions\n",line_number);
+        ctx->error_count++;
+        return 0;
+
+    }
+    if (!store_word(ctx,(int)v,line_number))
+    {
+        return 0;
+    }
+    count = 1;
+    for ( ; ;)
+    {
+        const char *q = s;
+        skip_spaces(&q);
+        /*list ended*/
+        if (*q != ',')
+        {
+            s=q;
+            break;
+        }
+        /*moving past the comma*/
+        q++;
+        skip_spaces(&s);
+
+        if (*q == ',' || *q == '\0')
+        {
+            printf("Error (line %d), double comma or comma without integer after\n",line_number)
+            ctx->error_count++;
+            return 0;
+        }
+
+        if (!parse_signed_int(&q,&v)
+        {
+            printf("Error (line %d), missing value after comma\n",line_number);
+            ctx->error_count++;
+            return 0;
+        }
+
+        /*too many values*/
+        if (count >= total)
+        {
+            printf("Error (line %d), too many elements\n",line_number);
+            ctx->error_count++;
+            return 0;
+        }
+
+        if (!store_word(ctx,(int)v,line_number))
+        {
+            return 0;
+        }
+        count++;
+        s=q;
+
+
+    }
+
+    /*if missing values, fill with zeros*/
+    while (count< total)
+    {
+        if (!store_word(ctx,0,line_number))
+        {
+            return 0;
+        }
+        count++;
+    }
+
+    *p=s;
+    return 1;
+
+
+}

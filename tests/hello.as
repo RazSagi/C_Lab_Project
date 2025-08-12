@@ -1,19 +1,36 @@
-; ---- test file for first pass ----
+; good data
+GOOD1:   .data  +3,  -2,  0
 
-; comment line should be skipped
-MAIN:   mov r3, r5      ; label + opcode
-        add r2, r7      ; no label
-LOOP:   cmp r1, r2
-        bne END
-        stop
+; bad comma in data (double comma)
+BADCOMMA: .data 1,, 3
 
-; directive with label
-DATA1:  .data 5, -3, 15
+; duplicate symbol
+DUP: .data 5
+DUP: .string "x"
 
-; directive without label
-        .string "Hello"
+; string missing closing quote
+STRMISS: .string "abc
 
-; reserved name as label (should error)
-mov:    add r1, r2
+; extraneous text after .string
+STRJUNK: .string "hi"   trailing
 
-END:    rts
+; .mat too many initializers for 2x2
+MTOO: .mat [2][2] 1,2,3,4,5
+
+; .mat zero-fill ok
+MZERO: .mat [2][3]
+
+; .mat invalid comma usage (trailing comma)
+MBAD: .mat [1][3] 9, 8,
+
+; label before .entry (invalid per booklet)
+LBL1: .entry MAIN
+
+; unknown directive
+.UNKNOWN 123
+
+; missing args after .data
+MISSING: .data
+
+; fine string
+OKSTR: .string "xyz"

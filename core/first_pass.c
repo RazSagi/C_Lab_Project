@@ -114,10 +114,23 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
 
                 else
                 {
-                    printf("Error (line %d), label before .entry is invalid '%s' \n",line_number,label);
+                    printf("Error (line %d), label before .entry or .extern is invalid '%s' \n",line_number,label);
                     ctx->error_count++;
                     continue;
                 }
+            }
+           /* there is no directive after the label, hence continue checking what after the label*/
+            const char *t = pc;
+            skip_spaces(&t);
+            /*only label without any other chars after it, defining the symbol in currect IC*/
+            if (*t == '\0')
+            {
+                if (!sym_table_add(label, ctx->IC,SYM_CODE))
+                {
+                    printf("Error (line %d), duplicate for symbol '%s' \n",line_number,label);
+                    ctx->error_count++;
+                }
+                continue;
             }
 
         }

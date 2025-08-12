@@ -299,3 +299,42 @@ int handle_string(const char **p,CtxAsm *ctx, int line_number)
     *p=s;
     return 1;
 }
+/*Helper method used to parse 1 dimension in brackets:[num]*/
+static int parse_dim_brackets(const char **p, long *out, int line_number)
+{
+    const char *s = *p;
+    long v;
+
+    /*skipping white chars*/
+    skip_spaces(&s);
+    /*checking if its start of brackets*/
+    if (*s!='[')
+    {
+        printf("Error (line %d), must start with '['\n",line_number);
+        return 0;
+    }
+    /*move past the '['*/
+    s++;
+    //checking if what after the brackets is positive number(dimension cant be negative or char)*/
+    if (!parse_signed_int(&s,&v)|| v<=0)
+    {
+        printf("Error (line %d), in .mat the dimension must be positive number '['\n",line_number);
+        return 0;
+    }
+
+    skip_spaces(&s);
+    /* checking if after the number we have closing brackets*/
+    if (*s != ']')
+    {
+        printf("Error (line %d), must end with ']'\n",line_number);
+        return 0;
+    }
+    s++;
+    *out=v;
+    *p=s;
+    return 1;
+}
+
+/*same as handle string and handle data, handles mat
+ *
+ */

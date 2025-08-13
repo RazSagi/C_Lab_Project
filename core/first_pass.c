@@ -129,14 +129,28 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
                 ctx->error_count++;
                 continue;
             }
-            /* checking if what follows the label is valid instruction*/
-            int tok_len = 0;
-            if (!is_instruction(pc,&tok_len))
+            int base_ic = ctx->IC;
+            tmp=pc;
+
+            if (!handle_instruct(&tmp,ctx,line_number))
             {
-                printf("Error (line %d), unkown opcode after label \n",line_number);
-                ctx->error_count++;
                 continue;
             }
+
+            /*checking if there is trainling chars after the instruction*/
+            skip_spaces(&tmp);
+            if (*tmp!='\0')
+            {
+                printf("Error (line %d), invalid text after directive \n",line_number);
+                ctx->error_count++;
+            }
+
+            if (!sym_table_add(label,base_ic,SYM_CODE))
+            {
+                printf("Error (line %d), duplicate for symbol '%s' \n",line_number,label);
+                ctx->error_count++;
+            }
+            continue;
 
         }
 

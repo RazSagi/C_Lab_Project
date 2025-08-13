@@ -412,7 +412,7 @@ int handle_mat(const char **p,CtxAsm *ctx, int line_number)
         }
         /*moving past the comma*/
         q++;
-        skip_spaces(&s);
+        skip_spaces(&q);
 
         if (*q == ',' || *q == '\0')
         {
@@ -462,8 +462,156 @@ int handle_instruct(const char **p, CtxAsm *ctx, int line_number)
 {
     const char *s = *p;
     int tok_len = 0;
-
+    /*checking if its even valid op code*/
     skip_spaces(&s);
+    if (!is_instruction(s,&tok_len) || tok_len <=0)
+    {
+        printf("Error (line %d), unknown opcode \n",line_number);
+        ctx->error_count++;
+        return 0;
+    }
+    const char *op = s;
+    s += tok_len;
+
+    /*how many operands we expacting*/
+    int num_ops = opcode_count_operand(op,tok_len);
+    if (num_ops<0)
+    {
+        printf("Error (line %d), unknown opcode \n",line_number);
+        ctx->error_count++;
+        return 0;
+    }
+
+    /*keeping it minimal, will add more later (adressing)*/
+
+    enum {OP_NONE = 0, OP_IMM, OP_DIR, OP_REG};
+    int a1=OP_NONE;
+    int a2=OP_NONE;
+
+    /*first operand*/
+    if (num_ops>=1)
+    {
+        const char *t = s;
+        long dum;
+        skip_spaces(&t);
+
+        if (*t == '#')
+        {
+            t++;
+            if (!parse_signed_int(&t,&dum))
+            {
+                printf("Error (line %d), missing operand\n",line_number);
+                ctx->error_count++;
+                return 0;
+            }
+            a1=OP_IMM;
+            s=t;
+        }
+        else if (t[0] == 'r' && t[1]>='0' && t[1]<='7' && !is_alphanumeric(t[2]))
+        {
+            a1=OP_REG;
+            s = t + 2;
+        }
+        else if (is_letter(*t))
+        {
+            t++;
+            while (is_alphanumeric(*t))
+            {
+                t++;
+            }
+            a1=OP_DIR;
+            s=t;
+        }
+        else
+        {
+            printf("Error (line %d), missing operand\n",line_number);
+            ctx->error_count++;
+            return 0;
+        }
+    }
+    /*expecting comma and operand #2*/
+    if (num_ops==2)
+    {
+        const char *t = s;
+        skip_spaces(&t);
+        if (*t != ',')
+        {
+            printf("Error (line %d), missing comma between operands\n",line_number);
+            ctx->error_count++;
+            return 0;
+        }
+        t++;
+        skip_spaces(&t);
+        if (*t=='\0' || *t == ',')
+        {
+            printf("Error (line %d), double ,, or , without operand after it\n",line_number);
+            ctx->error_count++;
+            return 0;
+        }
+
+        if (*t == '#')
+        {
+            long dum;
+            t++;
+            if (!parse_signed_int(&t,&dum))
+            {
+                printf("Error (line %d), missing second operand\n",line_number);
+                ctx->error_count++;
+                return 0;
+            }
+            a2=OP_IMM;
+            s=t;
+
+        }
+        else if (t[0] == 'r' && t[1]>='0' && t[1]<='7' && !is_alphanumeric(t[2]))
+        {
+            a2=OP_REG;
+            s = t + 2;
+        }
+        else if (is_letter(*t))
+        {
+            t++;
+            while (is_alphanumeric(*t))
+            {
+                t++;
+            }
+            a2=OP_DIR;
+            s=t;
+        }
+        else
+        {
+            printf("Error (line %d), missing second operand\n",line_number);
+            ctx->error_count++;
+            return 0;
+        }
+    }
+
+
+    /*sizing
+     *non reg adds 1
+     *reg one word total for one or two reg
+     */
+
+    int words = 1;
+    int regs;
+    int non_regs;
+    if (num_ops==1)
+    {
+        words+=1;
+    }
+    else if (num_ops==2)
+    {
+        regs = (a1 == OP_REG) + (a2 == OP_REG);
+        non_regs = (a1 != OP_REG) + (a2 != OP_REG);
+        if (regs>=1)
+        {
+            words+=1;
+        }
+        words+=non_regs;
+    }
+    ctx->IC += words;
+    *p=s;
+    return 1;
 
 }
 

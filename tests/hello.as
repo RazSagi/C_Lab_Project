@@ -1,36 +1,25 @@
-; good data
-GOOD1:   .data  +3,  -2,  0
+; issues.as — lines ≤80 chars, all with labels
 
-; bad comma in data (double comma)
-BADCOMMA: .data 1,, 3
+ONLYLBL:
 
-; duplicate symbol
-DUP: .data 5
-DUP: .string "x"
+LBLENTRY: .entry MAIN
+LBLEXTERN: .extern EXT
 
-; string missing closing quote
-STRMISS: .string "abc
+BADDIR: .foobar 1
 
-; extraneous text after .string
-STRJUNK: .string "hi"   trailing
+BADOP1: foo r1, r2
+MISS1: add
+MISS2: add r1
+MISS3: add r1,
+MISS4: add , r2
 
-; .mat too many initializers for 2x2
-MTOO: .mat [2][2] 1,2,3,4,5
+JUNK1: mov r2, r3 junk
 
-; .mat zero-fill ok
-MZERO: .mat [2][3]
+DATA1: .data 1,,2
+DATA2: .data 1 2
 
-; .mat invalid comma usage (trailing comma)
-MBAD: .mat [1][3] 9, 8,
+STR1: .string abc
 
-; label before .entry (invalid per booklet)
-LBL1: .entry MAIN
-
-; unknown directive
-.UNKNOWN 123
-
-; missing args after .data
-MISSING: .data
-
-; fine string
-OKSTR: .string "xyz"
+MAT1: .mat [0][3]
+MAT2: .mat [2][2] 1,2,3,4,5
+MAT3: .mat 2][2] 1,2

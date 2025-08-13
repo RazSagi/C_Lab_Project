@@ -91,7 +91,7 @@ int is_instruction(const char *p, int *tok_len)
     const char *s = p;
     const char **q;
     const char *start;
-    size_t len = 0;
+    int len = 0;
 
     while (*s == ' ' || *s=='\t')
     {
@@ -104,25 +104,18 @@ int is_instruction(const char *p, int *tok_len)
     }
 
     start = s;
-    while (!is_letter(*s))
+    while (is_letter(*s))
     {
         s++;
     }
 
-    len = (size_t)(s-start);
-    if (len ==0)
-    {
-        return 0;
-    }
+    len = (int)(s-start);
+    if (tok_len) *tok_len = len;
 
     for (q=instructions; *q; q++)
     {
-        if (strlen(*q == len) && strncmp(*q,start,len) == 0)
+        if ((int)strlen(*q) == len && strncmp(*q,start,(size_t)len) == 0)
         {
-            if (tok_len)
-            {
-                *tok_len = len;
-            }
             return 1;
         }
     }
@@ -133,9 +126,10 @@ int is_instruction(const char *p, int *tok_len)
 /*checking if the following opcode should have 0\1\2 operands*/
 static int in_list(const char *op,int len,const char *const *list)
 {
-    for (const char *const *p = list; *p; p++)
+    const char *const *p;
+    for (p = list; *p; p++)
     {
-        if ((int)strlen(*p)==len && strncmp(*p,op,len) == 0)
+        if ((int)strlen(*p)==len && strncmp(*p,op,(size_t)len) == 0)
         {
             return 1;
         }
@@ -144,7 +138,7 @@ static int in_list(const char *op,int len,const char *const *list)
     return 0;
 }
 
-int opcode_count_op(const char *op,int len)
+int opcode_count_operand(const char *op,int len)
 {
     if (in_list(op,len,ops2))
     {

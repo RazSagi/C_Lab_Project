@@ -462,6 +462,16 @@ int handle_instruct(const char **p, CtxAsm *ctx, int line_number)
 {
     const char *s = *p;
     int tok_len = 0;
+    const char *op = NULL;
+    int num_ops = 0;
+    int a1=OP_NONE;
+    int a2=OP_NONE;
+    const char *t = NULL;
+    long dum = 0;
+    int words=1;
+    int regs=0;
+    int non_regs=0;
+
     /*checking if its even valid op code*/
     skip_spaces(&s);
     if (!is_instruction(s,&tok_len) || tok_len <=0)
@@ -470,11 +480,11 @@ int handle_instruct(const char **p, CtxAsm *ctx, int line_number)
         ctx->error_count++;
         return 0;
     }
-    const char *op = s;
+    op = s;
     s += tok_len;
 
     /*how many operands we expacting*/
-    int num_ops = opcode_count_operand(op,tok_len);
+    num_ops = opcode_count_operand(op,tok_len);
     if (num_ops<0)
     {
         printf("Error (line %d), unknown opcode \n",line_number);
@@ -484,15 +494,12 @@ int handle_instruct(const char **p, CtxAsm *ctx, int line_number)
 
     /*keeping it minimal, will add more later (adressing)*/
 
-    enum {OP_NONE = 0, OP_IMM, OP_DIR, OP_REG};
-    int a1=OP_NONE;
-    int a2=OP_NONE;
+
 
     /*first operand*/
     if (num_ops>=1)
     {
-        const char *t = s;
-        long dum;
+        t = s;
         skip_spaces(&t);
 
         if (*t == '#')
@@ -532,7 +539,7 @@ int handle_instruct(const char **p, CtxAsm *ctx, int line_number)
     /*expecting comma and operand #2*/
     if (num_ops==2)
     {
-        const char *t = s;
+        t = s;
         skip_spaces(&t);
         if (*t != ',')
         {
@@ -551,7 +558,6 @@ int handle_instruct(const char **p, CtxAsm *ctx, int line_number)
 
         if (*t == '#')
         {
-            long dum;
             t++;
             if (!parse_signed_int(&t,&dum))
             {
@@ -592,9 +598,6 @@ int handle_instruct(const char **p, CtxAsm *ctx, int line_number)
      *reg one word total for one or two reg
      */
 
-    int words = 1;
-    int regs;
-    int non_regs;
     if (num_ops==1)
     {
         words+=1;

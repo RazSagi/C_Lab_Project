@@ -28,6 +28,11 @@
 #define DC_START 0
 #define MAX_DATA 256
 
+#define OP_NONE 0
+#define OP_IMM  1
+#define OP_DIR  2
+#define OP_REG  3
+
 
 
 

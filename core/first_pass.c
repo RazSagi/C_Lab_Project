@@ -17,6 +17,8 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
     const char *tmp;
     int kind;
     int ok = 1;
+    const char *t;
+    int base_ic;
 
     /*starting the context assembler struct*/
     ctx->IC = IC_START;
@@ -120,7 +122,8 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
                 }
             }
            /* there is no directive after the label, hence continue checking what after the label*/
-            const char *t = pc;
+
+            t = pc;
             skip_spaces(&t);
             /*only label without any other chars after it, error*/
             if (*t == '\0' || *t == ';')
@@ -129,7 +132,8 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
                 ctx->error_count++;
                 continue;
             }
-            int base_ic = ctx->IC;
+
+            base_ic= ctx->IC;
             tmp=pc;
 
             if (!handle_instruct(&tmp,ctx,line_number))

@@ -21,6 +21,10 @@ static const char *instructions[] = {
 static const char *registers[] = {
     "r0","r1","r2","r3","r4","r5","r6","r7", NULL
 };
+static const char *ops2[] = {"mov", "cmp", "add", "sub", "lea", NULL};
+static const char *ops1[] = {"clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", NULL};
+static const char *ops0[] = {"rts", "stop", NULL};
+
 
 char *append_file_extension(const char *base,const char *ext)
 {
@@ -123,5 +127,37 @@ int is_instruction(const char *p, int *tok_len)
         }
     }
     return 0;
+
+}
+
+/*checking if the following opcode should have 0\1\2 operands*/
+static int in_list(const char *op,int len,const char *const *list)
+{
+    for (const char *const *p = list; *p; p++)
+    {
+        if ((int)strlen(*p)==len && strncmp(*p,op,len) == 0)
+        {
+            return 1;
+        }
+
+    }
+    return 0;
+}
+
+int opcode_count_op(const char *op,int len)
+{
+    if (in_list(op,len,ops2))
+    {
+        return 2;
+    }
+    if (in_list(op,len,ops1))
+    {
+        return 1;
+    }
+    if (in_list(op,len,ops0))
+    {
+        return 0;
+    }
+    return -1;
 
 }

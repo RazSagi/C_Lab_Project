@@ -13,6 +13,7 @@ int is_digit(char c);
 int is_alphanumeric(char c);
 char *my_strdup(const char *s);
 int is_instruction(const char *p, int *tok_len);
+int opcode_count_operand(const char *op, int len);
 
 
 

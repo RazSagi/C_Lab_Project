@@ -457,8 +457,14 @@ int handle_mat(const char **p,CtxAsm *ctx, int line_number)
 
     *p=s;
     return 1;
+}
+int handle_instruct(const char **p, CtxAsm *ctx, int line_number)
+{
+    const char *s = *p;
+    int tok_len = 0;
 
+    skip_spaces(&s);
 
 }
 
-/
+

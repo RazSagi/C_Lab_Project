@@ -82,3 +82,46 @@ char *my_strdup(const char *s)
     }
     return p;
 }
+int is_instruction(const char *p, int *tok_len)
+{
+    const char *s = p;
+    const char **q;
+    const char *start;
+    size_t len = 0;
+
+    while (*s == ' ' || *s=='\t')
+    {
+        s++;
+    }
+
+    if (!is_letter(*s))
+    {
+        return 0;
+    }
+
+    start = s;
+    while (!is_letter(*s))
+    {
+        s++;
+    }
+
+    len = (size_t)(s-start);
+    if (len ==0)
+    {
+        return 0;
+    }
+
+    for (q=instructions; *q; q++)
+    {
+        if (strlen(*q == len) && strncmp(*q,start,len) == 0)
+        {
+            if (tok_len)
+            {
+                *tok_len = len;
+            }
+            return 1;
+        }
+    }
+    return 0;
+
+}

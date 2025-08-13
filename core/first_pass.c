@@ -125,7 +125,15 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
             /*only label without any other chars after it, error*/
             if (*t == '\0' || *t == ';')
             {
-                printf("Error (line %d), no command after label \n",line_number,label);
+                printf("Error (line %d), no command after label \n",line_number);
+                ctx->error_count++;
+                continue;
+            }
+            /* checking if what follows the label is valid instruction*/
+            int tok_len = 0;
+            if (!is_instruction(pc,&tok_len))
+            {
+                printf("Error (line %d), unkown opcode after label \n",line_number);
                 ctx->error_count++;
                 continue;
             }

@@ -68,3 +68,15 @@ void sym_table_relocate(int del)
         }
     }
 }
+Symbol* sym_table_lookup( char *name)
+{
+    int i;
+    for (i = 0; i < g_sym_count; i++)
+    {
+        if (strcmp(g_symbols[i].name, name) == 0)
+        {
+            return &g_symbols[i];
+        }
+    }
+    return 0;
+}

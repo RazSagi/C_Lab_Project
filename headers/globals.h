@@ -37,6 +37,16 @@
 #define BASE4_STR_MAX 32
 #define FILE_EXT_OB ".ob"
 
+#define WORD_BITS     10
+#define OPCODE_SHIFT  6
+#define SRC_SHIFT     4
+#define DST_SHIFT     2
+#define ARE_SHIFT     0
+
+#define ARE_ABS 0
+#define ARE_EXT 1
+#define ARE_REL 2
+
 
 
 

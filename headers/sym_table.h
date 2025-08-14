@@ -34,4 +34,7 @@ int sym_table_add( char *name,int value,SymKind kind);
 /*add the IC to all SYM_DTA symbols by the end of the first pass*/
 void sym_table_relocate(int del);
 
+/*returns pointer to the symbol*/
+Symbol* sym_table_lookup( char *name);
+
 #endif

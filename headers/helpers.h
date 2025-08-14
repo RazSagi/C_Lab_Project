@@ -5,6 +5,7 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 #include "globals.h"
+#include <stdio.h>
 
 char *append_file_extension( char *base, char *ext);
 int is_reserved( char *name);

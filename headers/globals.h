@@ -34,6 +34,9 @@
 #define OP_DIR  2
 #define OP_REG  3
 
+#define BASE4_STR_MAX 32
+#define FILE_EXT_OB ".ob"
+
 
 
 

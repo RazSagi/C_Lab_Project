@@ -155,3 +155,50 @@ int opcode_count_operand( char *op,int len)
     return -1;
 
 }
+
+/*this method take number between 0 - 3 and retruns the right letter*/
+static char base4_digit(unsigned v)
+{
+    switch (v & 3)
+    {
+        case 0: return 'a';
+        case 1: return 'b';
+        case 2: return 'c';
+        default: return 'd';
+    }
+}
+
+/*converting non-negative integer to base 4 string, return the length */
+int make_unique_base4(unsigned value, char out[BASE4_STR_MAX])
+{
+    char tmp[BASE4_STR_MAX];
+    int i = 0;
+    int j;
+
+    if (value == 0)
+    {
+        out[0] = 'a';
+        out[1] = '\0';
+        return 1;
+    }
+
+    while (value>0 && i<(BASE4_STR_MAX-1))
+    {
+        tmp[i++] = base4_digit(value);
+        value >>=2;
+    }
+    /*reverse the output since we started with the less-importnet number*/
+    for (j=0;j<i;j++)
+    {
+        out[j] = tmp[i-1-j];
+    }
+    out[i] = '\0';
+    return i;
+}
+
+void print_unique_base4(FILE *f, unsigned value)
+{
+    char buffer[BASE4_STR_MAX];
+    make_unique_base4(value, buffer);
+    fputs(buffer, f);
+}

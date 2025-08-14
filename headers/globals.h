@@ -36,6 +36,8 @@
 
 #define BASE4_STR_MAX 32
 #define FILE_EXT_OB ".ob"
+#define FILE_EXT_ENT ".ent"
+#define FILE_EXT_EXT ".ext"
 
 #define WORD_BITS     10
 #define OPCODE_SHIFT  6

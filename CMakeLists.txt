@@ -14,5 +14,7 @@ add_executable(assembler ${SRC_FILES}
         headers/preproc.h
         core/macro_list.c
         headers/macro_list.h
+        core/second_pass.c
+        headers/second_pass.h
 )
 

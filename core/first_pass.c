@@ -157,6 +157,29 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
             continue;
 
         }
+        /*its not a label, moving forward*/
+        /*checking if the first char is '.', if not its probably instruction*/
+        const char *t2 = pc;
+        skip_spaces(&t2);
+
+        if (*t2 != '.')
+        {
+            tmp=pc;
+            if (!handle_instruct(&tmp,ctx,line_number))
+            {
+                /*if failes, already printed the error*/
+                continue;
+            }
+            /*checking for excecive char after the instruction*/
+            skip_spaces(&tmp);
+            if (*tmp!='\0')
+            {
+                printf("Error (line %d), invalid text after directive \n",line_number);
+                ctx->error_count++;
+            }
+            continue;
+        }
+
 
 
 

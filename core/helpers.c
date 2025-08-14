@@ -12,8 +12,8 @@ static  char *directives[] = {
 
 /*Array of Instructions*/
 static  char *instructions[] = {
-    "mov","cmp","add","sub","lea","clr","not",
-    "inc","dec","jmp","bne","jsr","red","prn","rts","stop",
+    "mov","cmp","add","sub","not","clr","lea",
+    "inc","dec","jmp","bne","red","prn","jsr","rts","stop",
     NULL
 };
 
@@ -201,4 +201,17 @@ void print_unique_base4(FILE *f, unsigned value)
     char buffer[BASE4_STR_MAX];
     make_unique_base4(value, buffer);
     fputs(buffer, f);
+}
+/*this method gets opcode name and return the number of the opcode*/
+int opcode_by_name(char *name,int len)
+{
+    int i;
+    for (i = 0; instructions[i]; i++)
+    {
+        if ((int)strlen(instructions[i]) == len && strncmp(instructions[i],name,(size_t)len) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
 }

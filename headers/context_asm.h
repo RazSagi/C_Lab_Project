@@ -15,6 +15,8 @@ typedef struct
     int DC;
     int error_count;
     int data_img[MAX_DATA];
+    char entries[MAX_ENTRIES][MAX_LABEL_LENGTH];
+    int entry_count;
 
 }CtxAsm;
 #endif

@@ -20,12 +20,17 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
     char *t;
     int base_ic;
     char *t2;
+    char *s;
+    char name[MAX_LABEL_LENGTH];
+    char *start;
+    int len;
 
 
     /*starting the context assembler struct*/
     ctx->IC = IC_START;
     ctx->DC = 0;
     ctx->error_count = 0;
+    ctx->entry_count = 0;
 
 
 
@@ -161,7 +166,7 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
         }
         /*its not a label, moving forward*/
         /*checking if the first char is '.', if not its probably instruction*/
-        *t2 = pc;
+        t2 = pc;
         skip_spaces(&t2);
 
         if (*t2 != '.')
@@ -211,9 +216,107 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
                     ok = 0;
                 }
             }
-            else if (kind == DIR_ENTRY || kind == DIR_EXTERN)
+            else if (kind == DIR_EXTERN)
             {
+                s = tmp;
+                skip_spaces(&s);
+                if (!is_letter(*s))
+                {
+                    printf("Error (line %d), Symbols is expected after .extern \n",line_number);
+                    ctx->error_count++;
+                    continue;
+                }
+                start = s++;
+
+                while (is_alphanumeric(*s))
+                {
+                    s++;
+                }
+                len = (int)(s-start);
+                if (len >= MAX_LABEL_LENGTH)
+                {
+                    printf("Error (line %d), Symbols too long after .extern \n",line_number);
+                    ctx->error_count++;
+                    continue;
+                }
+
+                memcpy(name,start,(size_t)len);
+                name[len] = '\0';
+
+                if (is_reserved(name))
+                {
+                    printf("Error (line %d), Invalid extern \n",line_number);
+                    ctx->error_count++;
+                    continue;
+                }
+
+                if (!sym_table_add(name,0,SYM_EXTERN))
+                {
+                    printf("Error (line %d), duplicate for symbol '%s' \n",line_number,name);
+                    ctx->error_count++;
+                    continue;
+                }
+                /*checking for text after the directive*/
+                skip_spaces(&s);
+                if ((*s!='\0'))
+                {
+                    printf("Error (line %d), invalid text after directive \n",line_number);
+                    ctx->error_count++;
+                }
                 continue;
+            }
+            /*almost the same as the DIR_EXTERN*/
+            else if (kind == DIR_ENTRY)
+            {
+                s=tmp;
+                skip_spaces(&s);
+                if (!is_letter(*s))
+                {
+                    printf("Error (line %d), Symbols is expected after .entry \n",line_number);
+                    ctx->error_count++;
+                    continue;
+                }
+                start = s++;
+                while (is_alphanumeric(*s))
+                {
+                    s++;
+                }
+
+                len = (int)(s-start);
+                if (len >= MAX_LABEL_LENGTH)
+                {
+                    printf("Error (line %d), Symbols too long after .entry \n",line_number);
+                    ctx->error_count++;
+                    continue;
+                }
+                memcpy(name,start,(size_t)len);
+                name[len] = '\0';
+
+                if (is_reserved(name))
+                {
+                    printf("Error (line %d), Invalid entry name \n",line_number);
+                    ctx->error_count++;
+                    continue;
+                }
+
+                if (ctx->entry_count >= MAX_ENTRIES)
+                {
+                    printf("Error (line %d), too many entries \n",line_number);
+                    ctx->error_count++;
+                    continue;
+                }
+                strcpy(ctx->entries[ctx->entry_count++],name);
+
+                /*checking for unwanted chars after entry*/
+                skip_spaces(&s);
+                if (*s!='\0')
+                {
+                    printf("Error (line %d), invalid text after .directive \n",line_number);
+                    ctx->error_count++;
+                }
+                continue;
+
+
             }
             /*checking the status of the ok variable*/
             if (!ok)

@@ -31,4 +31,7 @@ int sym_table_contains( char *name);
 /*return 1 on success adding, 0 if dupe or table full*/
 int sym_table_add( char *name,int value,SymKind kind);
 
+/*add the IC to all SYM_DTA symbols by the end of the first pass*/
+void sym_table_relocate(int del);
+
 #endif

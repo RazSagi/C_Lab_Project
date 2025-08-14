@@ -56,3 +56,15 @@ int sym_table_add( char *name, int value, SymKind kind)
     g_sym_count++;
     return 1;
 }
+
+void sym_table_relocate(int del)
+{
+    int i;
+    for (i = 0; i < g_sym_count; i++)
+    {
+        if (g_symbols[i].kind == SYM_DATA)
+        {
+            g_symbols[i].value += del;
+        }
+    }
+}

@@ -338,6 +338,7 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
 
     }
     fclose(in);
+    sym_table_relocate(ctx->IC);
     return ctx->error_count;
 
 }

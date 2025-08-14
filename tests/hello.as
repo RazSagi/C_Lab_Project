@@ -22,4 +22,4 @@ FORWARD: not r3       ; ok
 EXTDUP: .extern EXT1  ; label before .extern -> error (intentional)
 
 ; Try a pure duplicate extern (no label):
-.extern EXT1          ; duplicate extern -> error (intentional)
+.extern EXT1          ; duplicate extern -> error (intentional) hello hello hello heloo hello heloo

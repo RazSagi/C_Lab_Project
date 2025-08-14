@@ -45,21 +45,24 @@ int run_preprocessor( char *in_path,char *out_path)
     in=fopen(in_path,"r");
     if (!in)
     {
-        return PREPROC_ERR_OPEN_IN;
+        printf("Error pre processor, couldent open file\n");
+        return 0;
     }
     /*trying to initialize the MacroList*/
     macros = ml_create();
     if (!macros)
     {
         fclose(in);
-        return PREPROC_ERR_OUT_MEMORY;
+        printf("Error pre processor, issue with creating macro list\n");
+        return 0;
     }
     out = fopen(out_path, "w");
     if (!out)
         {
             fclose(in);
             ml_delete(macros);
-            return PREPROC_ERR_OPEN_OUT;
+        printf("Error pre processor, couldent open out file\n");
+            return 0;
         }
 
     /*Start running on the give file*/
@@ -82,7 +85,8 @@ int run_preprocessor( char *in_path,char *out_path)
             ml_delete(macros);
             fclose(in);
             fclose(out);
-            return PREPROC_ERR_LINE_TOO_LONG;
+            printf("Error pre processor, this line is over 80 chars: %s \n",line);
+            return 0;
         }
 
         token = first_letter(line);
@@ -146,7 +150,8 @@ int run_preprocessor( char *in_path,char *out_path)
                         ml_delete(macros);
                         fclose(in);
                         fclose(out);
-                        return PREPROC_ERR_MACRO_NAME_INVALID;
+                        printf("Error pre processor, Macro name invalid\n");
+                        return 0;
                     }
 
                     /*closing the macro name (eliminate ws after the word)*/
@@ -164,7 +169,8 @@ int run_preprocessor( char *in_path,char *out_path)
                         ml_delete(macros);
                         fclose(in);
                         fclose(out);
-                        return PREPROC_ERR_MACRO_NAME_INVALID;
+                        printf("Error pre processor, Macro name is reserved word\n");
+                        return 0;
                     }
 
                     /*success, we found start of macro. proceeding to define it*/
@@ -178,7 +184,8 @@ int run_preprocessor( char *in_path,char *out_path)
                         ml_delete(macros);
                         fclose(in);
                         fclose(out);
-                        return PREPROC_ERR_OUT_MEMORY;
+                        printf("Error pre processor, out of memory\n");
+                        return 0;
                     }
                     restword--;
                     *restword = saved;

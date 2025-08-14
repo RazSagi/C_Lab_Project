@@ -113,7 +113,7 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
                     }
 
                     skip_spaces(&tmp);
-                    if (*tmp != '\0')
+                    if (*tmp != '\0' && *tmp !=';')
                     {
                         printf("Error (line %d), invalid text after directive \n",line_number);
                         ctx->error_count++;
@@ -150,7 +150,7 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
 
             /*checking if there is trainling chars after the instruction*/
             skip_spaces(&tmp);
-            if (*tmp!='\0')
+            if (*tmp!='\0' && *tmp !=';')
             {
                 printf("Error (line %d), invalid text after directive \n",line_number);
                 ctx->error_count++;
@@ -178,8 +178,8 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
                 continue;
             }
             /*checking for excecive char after the instruction*/
-            skip_spaces(&tmp);
-            if (*tmp!='\0')
+            skip_spaces(&tmp );
+            if (*tmp!='\0' && *tmp !=';')
             {
                 printf("Error (line %d), invalid text after directive \n",line_number);
                 ctx->error_count++;
@@ -258,7 +258,7 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
                 }
                 /*checking for text after the directive*/
                 skip_spaces(&s);
-                if ((*s!='\0'))
+                if (*s!='\0' && *s !=';')
                 {
                     printf("Error (line %d), invalid text after directive \n",line_number);
                     ctx->error_count++;
@@ -309,7 +309,7 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
 
                 /*checking for unwanted chars after entry*/
                 skip_spaces(&s);
-                if (*s!='\0')
+                if (*s!='\0' && *s !=';')
                 {
                     printf("Error (line %d), invalid text after .directive \n",line_number);
                     ctx->error_count++;
@@ -324,7 +324,7 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
                 continue;
             }
             skip_spaces(&tmp);
-            if (*tmp!='\0')
+            if (*tmp!='\0' && *tmp !=';')
             {
                 printf("Error (line %d), invalid text after directive \n",line_number);
                 ctx->error_count++;

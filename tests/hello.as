@@ -1,21 +1,25 @@
+; pass1_comments.as — should show only the duplicate extern error
 
+MAIN: mov r1, r2      ; ok comment
+      add #5, r3      ; ok comment
+      prn #7          ; ok comment
+      rts             ; ok comment
 
-MAIN: mov r1, r2
-      add #5, r3
-      prn #7
-      rts
+STR: .string "hello"  ; ok
+NUMS: .data 1,2,3     ; ok
+MAT1: .mat [1][3] 4,5,6 ; ok
 
-STR: .string "hello"
-NUMS: .data 1, -2, 3, 0
-MAT1: .mat [2][3] 1,2,3,4,5,6
+.data 9,8,7           ; ok
+.string "ok"          ; ok
+.mat [1][2] 10,20     ; ok
 
-.data 9,8,7
-.string "ok"
-.mat [1][2] 10,20
+.extern EXT1          ; ok
+.entry MAIN           ; ok
+.entry FORWARD        ; ok
 
-.extern EXT1
-.extern EXT2
-.entry MAIN
-.entry FORWARD
+FORWARD: not r3       ; ok
 
-FORWARD: not r3
+EXTDUP: .extern EXT1  ; label before .extern -> error (intentional)
+
+; Try a pure duplicate extern (no label):
+.extern EXT1          ; duplicate extern -> error (intentional)

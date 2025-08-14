@@ -89,7 +89,7 @@ int check_directive_type( char **p,int line_number,CtxAsm *ctx)
     {
         s+=4;/*passing it to the first char after "data"*/
         skip_spaces(&s);
-        if (*s == '\0')
+        if (*s == '\0' && *s !=';')
         {
             printf("Error (line %d), missing arguments after .data\n",line_number);
             ctx->error_count++;
@@ -238,7 +238,7 @@ int handle_data( char **p,CtxAsm *ctx, int line_number)
 
         if (*q == ',' || *q == '\0')
         {
-            printf("error (line %d), invalid using comma in .data\n",line_number);
+            printf("Error (line %d), invalid using comma in .data\n",line_number);
             ctx->error_count++;
             return 0;
         }
@@ -266,7 +266,7 @@ int handle_string( char **p,CtxAsm *ctx, int line_number)
 
     if (*s != '"')
     {
-        printf("Error (line %d), must sstart with quote\n",line_number);
+        printf("Error (line %d), must start with quote\n",line_number);
         ctx->error_count++;
         return 0;
     }

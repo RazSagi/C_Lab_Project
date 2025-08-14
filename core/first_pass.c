@@ -9,16 +9,18 @@
 #include "sym_table.h"
 
 
-int run_first_pass(const char *am_file,CtxAsm *ctx)
+int run_first_pass(char *am_file,CtxAsm *ctx)
 {
     FILE *in=fopen(am_file,"r");/*open the am file recived by the pre-proc*/
     char line[LINE_BUFFER];
     int line_number=0;
-    const char *tmp;
+    char *tmp;
     int kind;
     int ok = 1;
-    const char *t;
+    char *t;
     int base_ic;
+    char *t2;
+
 
     /*starting the context assembler struct*/
     ctx->IC = IC_START;
@@ -35,7 +37,7 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
     while(fgets(line,LINE_BUFFER,in))
     {
         char *p=NULL;
-        const char *pc;
+        char *pc;
         char label[MAX_LABEL_LENGTH];
         int lbl_stat;
 
@@ -121,7 +123,7 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
                     continue;
                 }
             }
-           /* there is no directive after the label, hence continue checking what after the label*/
+            /* there is no directive after the label, hence continue checking what after the label*/
 
             t = pc;
             skip_spaces(&t);
@@ -159,7 +161,7 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
         }
         /*its not a label, moving forward*/
         /*checking if the first char is '.', if not its probably instruction*/
-        const char *t2 = pc;
+        *t2 = pc;
         skip_spaces(&t2);
 
         if (*t2 != '.')
@@ -176,6 +178,54 @@ int run_first_pass(const char *am_file,CtxAsm *ctx)
             {
                 printf("Error (line %d), invalid text after directive \n",line_number);
                 ctx->error_count++;
+            }
+            continue;
+        }
+        else
+        {
+            tmp=pc;
+            kind = check_directive_type(&tmp,line_number,ctx);
+            if (kind == DIR_NONE)
+            {
+                continue;
+            }
+            ok = 1;
+            if (kind == DIR_DATA)
+            {
+                if (!handle_data(&tmp,ctx,line_number))
+                {
+                    ok = 0;
+                }
+            }
+            else if (kind == DIR_STRING)
+            {
+                if (!handle_string(&tmp,ctx,line_number))
+                {
+                    ok = 0;
+                }
+            }
+            else if (kind == DIR_MAT)
+            {
+                if (!handle_mat(&tmp,ctx,line_number))
+                {
+                    ok = 0;
+                }
+            }
+            else if (kind == DIR_ENTRY || kind == DIR_EXTERN)
+            {
+                continue;
+            }
+            /*checking the status of the ok variable*/
+            if (!ok)
+            {
+                continue;
+            }
+            skip_spaces(&tmp);
+            if (*tmp!='\0')
+            {
+                printf("Error (line %d), invalid text after directive \n",line_number);
+                ctx->error_count++;
+
             }
             continue;
         }

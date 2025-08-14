@@ -6,27 +6,27 @@
 #include <stdio.h>
 #include "helpers.h"
 /* Array of Directives*/
-static const char *directives[] = {
+static  char *directives[] = {
     ".data", ".string", ".entry", ".extern", NULL
 };
 
 /*Array of Instructions*/
-static const char *instructions[] = {
+static  char *instructions[] = {
     "mov","cmp","add","sub","lea","clr","not",
     "inc","dec","jmp","bne","jsr","red","prn","rts","stop",
     NULL
 };
 
 /*Array of Registers*/
-static const char *registers[] = {
+static  char *registers[] = {
     "r0","r1","r2","r3","r4","r5","r6","r7", NULL
 };
-static const char *ops2[] = {"mov", "cmp", "add", "sub", "lea", NULL};
-static const char *ops1[] = {"clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", NULL};
-static const char *ops0[] = {"rts", "stop", NULL};
+static  char *ops2[] = {"mov", "cmp", "add", "sub", "lea", NULL};
+static  char *ops1[] = {"clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", NULL};
+static  char *ops0[] = {"rts", "stop", NULL};
 
 
-char *append_file_extension(const char *base,const char *ext)
+char *append_file_extension( char *base, char *ext)
 {
     char *new_name = malloc(strlen(base) + strlen(ext) + 1);
     if (!new_name) return NULL;
@@ -34,9 +34,9 @@ char *append_file_extension(const char *base,const char *ext)
     strcat(new_name, ext);
     return new_name;
 }
-int is_reserved(const char *name)
+int is_reserved( char *name)
 {
-    const char **p;
+     char **p;
     for (p = directives; *p; p++)
     {
         if (strcmp(name, *p)==0) return 1;
@@ -77,7 +77,7 @@ int is_alphanumeric(char c)
 {
     return (is_digit(c)||is_letter(c));
 }
-char *my_strdup(const char *s)
+char *my_strdup( char *s)
 {
     char *p = malloc(strlen(s)+1);
     if (p)
@@ -86,11 +86,11 @@ char *my_strdup(const char *s)
     }
     return p;
 }
-int is_instruction(const char *p, int *tok_len)
+int is_instruction( char *p, int *tok_len)
 {
-    const char *s = p;
-    const char **q;
-    const char *start;
+     char *s = p;
+     char **q;
+     char *start;
     int len = 0;
 
     while (*s == ' ' || *s=='\t')
@@ -124,9 +124,9 @@ int is_instruction(const char *p, int *tok_len)
 }
 
 /*checking if the following opcode should have 0\1\2 operands*/
-static int in_list(const char *op,int len,const char *const *list)
+static int in_list( char *op,int len, char * *list)
 {
-    const char *const *p;
+     char * *p;
     for (p = list; *p; p++)
     {
         if ((int)strlen(*p)==len && strncmp(*p,op,(size_t)len) == 0)
@@ -138,7 +138,7 @@ static int in_list(const char *op,int len,const char *const *list)
     return 0;
 }
 
-int opcode_count_operand(const char *op,int len)
+int opcode_count_operand( char *op,int len)
 {
     if (in_list(op,len,ops2))
     {

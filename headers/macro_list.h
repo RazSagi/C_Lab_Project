@@ -13,9 +13,9 @@ typedef struct  MacroList MacroList;
 MacroList* ml_create(void);/*Creating new list*/
 void ml_delete(MacroList *list);/*Delete list*/
 /*Adding new macro to the list*/
-int ml_add(MacroList *list, const char *name,const char *body);
+int ml_add(MacroList *list,  char *name, char *body);
 
 /*Looking for macro by name, returns null if not in list*/
-const char *ml_lookup(const MacroList *list, const char *name);
+ char *ml_lookup( MacroList *list,  char *name);
 
 #endif

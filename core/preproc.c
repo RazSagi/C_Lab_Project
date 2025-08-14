@@ -12,7 +12,7 @@
  */
 
 /*this method checks if there is chars after mcro\mcroend that isnt WS*/
-static int only_ws_after(const char *p)
+static int only_ws_after( char *p)
 {
     while (*p!='\0'&&*p!='\n'&&*p!='\r')
     {
@@ -26,7 +26,7 @@ static int only_ws_after(const char *p)
 }
 
 
-int run_preprocessor(const char *in_path,char *out_path)
+int run_preprocessor( char *in_path,char *out_path)
 {
     /* starting all the variables */
     FILE *in=NULL;
@@ -38,7 +38,7 @@ int run_preprocessor(const char *in_path,char *out_path)
     char *token;
     MacroList *macros;
     char *end;
-    const char *body;
+     char *body;
     char saved;
 
     /*trying to open the file*/

@@ -5,15 +5,15 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
-char *append_file_extension(const char *base,const char *ext);
-int is_reserved(const char *name);
+char *append_file_extension( char *base, char *ext);
+int is_reserved( char *name);
 char* first_letter(char *line);
 int is_letter(char c);
 int is_digit(char c);
 int is_alphanumeric(char c);
-char *my_strdup(const char *s);
-int is_instruction(const char *p, int *tok_len);
-int opcode_count_operand(const char *op, int len);
+char *my_strdup( char *s);
+int is_instruction( char *p, int *tok_len);
+int opcode_count_operand( char *op, int len);
 
 
 

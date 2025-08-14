@@ -45,7 +45,7 @@ typedef enum
     ML_ERROR_NAMED = 2
 }ML_Error;
 /*Adding new Node(Macro) to the list*/
-int ml_add(MacroList *list, const char *name,const char *body)
+int ml_add(MacroList *list,  char *name, char *body)
 {
     MacroNode *node = malloc(sizeof *node);
     if (!node) return ML_ERROR_NODE;
@@ -64,7 +64,7 @@ int ml_add(MacroList *list, const char *name,const char *body)
 }
 
 /*looking for Macro by name*/
-const char *ml_lookup(const MacroList *list, const char *name)
+ char *ml_lookup( MacroList *list,  char *name)
 {
     MacroNode *p=list->head;
     for (p = list->head; p; p=p->next)

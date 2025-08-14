@@ -4,6 +4,6 @@
 #ifndef PREPROC_H
 #define PREPROC_H
 
-int run_preprocessor(const char *in_path,char *out_path);
+int run_preprocessor( char *in_path,char *out_path);
 
 #endif

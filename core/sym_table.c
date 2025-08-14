@@ -14,12 +14,12 @@ void sym_table_reset(void)
     g_sym_count = 0;
 }
 
-static int name_equals(const char *name1, const char *name2)
+static int name_equals( char *name1,  char *name2)
 {
     return strcmp(name1, name2) == 0;
 }
 
-int sym_table_contains(const char *name)
+int sym_table_contains( char *name)
 {
     int i;
     for (i = 0; i < g_sym_count; i++)
@@ -32,7 +32,7 @@ int sym_table_contains(const char *name)
     return 0;
 }
 /*adding to the symbols table*/
-int sym_table_add(const char *name, int value, SymKind kind)
+int sym_table_add( char *name, int value, SymKind kind)
 {
     size_t length;
     /*dupe symbol*/

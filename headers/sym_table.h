@@ -26,9 +26,9 @@ typedef struct
 void sym_table_reset(void);
 
 /*return 1 if the label is laready exists*/
-int sym_table_contains(const char *name);
+int sym_table_contains( char *name);
 
 /*return 1 on success adding, 0 if dupe or table full*/
-int sym_table_add(const char *name,int value,SymKind kind);
+int sym_table_add( char *name,int value,SymKind kind);
 
 #endif

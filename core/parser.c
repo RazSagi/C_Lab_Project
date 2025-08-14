@@ -14,9 +14,9 @@
 
 
 /*skip past spaces and tabs*/
-void skip_spaces(const char **p)
+void skip_spaces( char **p)
 {
-    const char *p1 = *p;
+     char *p1 = *p;
     while (*p1 && (*p1 == ' '||*p1=='\t'))
     {
         p1++;
@@ -29,10 +29,10 @@ void skip_spaces(const char **p)
  * return 0 if its not a label (not error)
  * return -1 if its a label but not valid(reserved name\length)
  */
-int extract_label(const char **p,char out_label[MAX_LABEL_LENGTH])
+int extract_label(char **p,char out_label[MAX_LABEL_LENGTH])
 {
-    const char *s = *p;
-    const char *start = s;
+     char *s = *p;
+     char *start = s;
     size_t len;
 
     /*label must start with letter*/
@@ -71,9 +71,9 @@ int extract_label(const char **p,char out_label[MAX_LABEL_LENGTH])
     return 1;
 }
 /*checking if the text after the label is a directive and if so advancing *p after the directive+space*/
-int check_directive_type(const char **p,int line_number,CtxAsm *ctx)
+int check_directive_type( char **p,int line_number,CtxAsm *ctx)
 {
-    const char *s = *p;
+     char *s = *p;
 
     skip_spaces(&s);
 
@@ -172,10 +172,10 @@ int check_directive_type(const char **p,int line_number,CtxAsm *ctx)
 
 }
 /*working with signded int*/
-static int parse_signed_int(const char **p, long *out)
+static int parse_signed_int( char **p, long *out)
 {
-    const char *s = *p;
-    const char *end;
+     char *s = *p;
+     char *end;
     long v;
     skip_spaces(&s);
     /*checking if number*/
@@ -206,9 +206,9 @@ static int store_word(CtxAsm *ctx, int value, int line_number)
 }
 
 /*handles directive data*/
-int handle_data(const char **p,CtxAsm *ctx, int line_number)
+int handle_data( char **p,CtxAsm *ctx, int line_number)
 {
-    const char *s = *p;
+     char *s = *p;
     long v;
 
     if (!parse_signed_int(&s,&v))
@@ -225,7 +225,7 @@ int handle_data(const char **p,CtxAsm *ctx, int line_number)
 
     for (;;)
     {
-        const char *q = s;
+         char *q = s;
         skip_spaces(&q);
         /* if we arrived to comma*/
         if (*q != ',')
@@ -260,9 +260,9 @@ int handle_data(const char **p,CtxAsm *ctx, int line_number)
 
 }
 /*handles .string and update the dc*/
-int handle_string(const char **p,CtxAsm *ctx, int line_number)
+int handle_string( char **p,CtxAsm *ctx, int line_number)
 {
-    const char *s = *p;
+     char *s = *p;
 
     if (*s != '"')
     {
@@ -300,9 +300,9 @@ int handle_string(const char **p,CtxAsm *ctx, int line_number)
     return 1;
 }
 /*Helper method used to parse 1 dimension in brackets:[num]*/
-static int parse_dim_brackets(const char **p, long *out, int line_number)
+static int parse_dim_brackets( char **p, long *out, int line_number)
 {
-    const char *s = *p;
+     char *s = *p;
     long v;
 
     /*skipping white chars*/
@@ -339,9 +339,9 @@ static int parse_dim_brackets(const char **p, long *out, int line_number)
  *if we given less values that the dimensions we fill the rest of the matrix with zero
  *return an error if too many values given
  */
-int handle_mat(const char **p,CtxAsm *ctx, int line_number)
+int handle_mat( char **p,CtxAsm *ctx, int line_number)
 {
-    const char *s = *p;
+     char *s = *p;
     long rows;
     long cols;
     long v;
@@ -402,7 +402,7 @@ int handle_mat(const char **p,CtxAsm *ctx, int line_number)
     count = 1;
     for ( ; ;)
     {
-        const char *q = s;
+         char *q = s;
         skip_spaces(&q);
         /*list ended*/
         if (*q != ',')
@@ -458,15 +458,15 @@ int handle_mat(const char **p,CtxAsm *ctx, int line_number)
     *p=s;
     return 1;
 }
-int handle_instruct(const char **p, CtxAsm *ctx, int line_number)
+int handle_instruct( char **p, CtxAsm *ctx, int line_number)
 {
-    const char *s = *p;
+     char *s = *p;
     int tok_len = 0;
-    const char *op = NULL;
+     char *op = NULL;
     int num_ops = 0;
     int a1=OP_NONE;
     int a2=OP_NONE;
-    const char *t = NULL;
+     char *t = NULL;
     long dum = 0;
     int words=1;
     int regs=0;

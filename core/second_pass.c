@@ -407,8 +407,10 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         uses[ext_count].address = ic+(unsigned)off;
                         ext_count++;
                     }
-                    off++;/* took one non reg operand word*/
+
                 }
+                off++;/* took one non reg operand word*/
+
                 /*extern for operand 2 */
                 if (num_ops == 2 && a2 == OP_DIR && sym2[0] !='\0')
                 {

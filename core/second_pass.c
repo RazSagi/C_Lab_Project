@@ -7,6 +7,8 @@
 #include "sym_table.h"
 #include "second_pass.h"
 
+#include <ctype.h>
+
 #include "parser.h"
 
 /*builds new path for the new files we gonna create*/
@@ -190,6 +192,13 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     int ent_count = 0;
     EntItem *tmp;
 
+    ExtUse *uses = NULL;
+    int ext_count = 0;
+    ExtUse *utmp;
+
+    unsigned ic = 100;
+    unsigned add_words = 0;
+
     /*trying to open the file*/
     in =fopen(am_file,"r");
     if (!in)
@@ -254,6 +263,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             {
                 fclose(in);
                 free(entries);
+                free(uses);
                 return 0;
             }
             entries = tmp;
@@ -263,7 +273,173 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             continue;
 
         }
-        /*here we will handle the .extern and instructions*/
+        /*instruction, looking for extern uses and advance IC*/
+        if (dir_type == DIR_NONE)
+        {
+            int tok_len = 0;
+            char *s = NULL;
+            int num_ops = 0;
+            int a1 = OP_NONE;
+            int a2 = OP_NONE;
+            char sym1[MAX_LABEL_LENGTH];
+            char sym2[MAX_LABEL_LENGTH];
+            int regs = 0;
+            int non_regs = 0;
+            int off = 1; /*first word after opcode*/
+            char *t = NULL;
+            int n = 0;
+            Symbol *sx = NULL;
+
+            sym1[0] = '\0';
+            sym2[0] = '\0';
+            if (is_instruction(p,&tok_len)&& tok_len>0)
+            {
+                s = p + tok_len;
+                num_ops = opcode_count_operand(p,tok_len);
+
+                /*operand #1 */
+                if (num_ops >=1)
+                {
+                    t = s;
+                    skip_spaces(&t);
+
+                    if (*t == '#')
+                    {
+                        t++;
+                        if (*t == '+' || *t == '-') t++;
+                        while (isdigit(*t)) t++;
+                        a1 = OP_IMM;
+                        s = t;
+
+                    }
+                    else if (t[0] == 'r' && t[1] >= '0' && t[1] <= '7' && !is_alphanumeric(t[2]))
+                    {
+                        a1 = OP_REG;
+                        s = t + 2;
+                    }
+                    else if (is_letter(*t))
+                    {
+                        n=0;
+                        while (is_alphanumeric(*t) && n<MAX_LABEL_LENGTH-1)
+                        {
+                            sym1[n++] = *t;
+                            t++;
+                        }
+                        sym1[n] = '\0';
+                        a1 = OP_DIR;
+                        s = t;
+                    }
+                    else
+                    {
+                        ctx->error_count++;
+                    }
+                }
+                /*operand #2*/
+                if (num_ops == 2)
+                {
+                    t=s;
+                    skip_spaces(&t);
+                    if (*t != ',')
+                    {
+                        ctx->error_count++;
+                    }
+                    else
+                    {
+                        /*found comma, moving past it*/
+                        t++;
+                        skip_spaces(&t);
+
+                        if (*t == '#')
+                        {
+                            t++;
+                            if (*t == '+' || *t == '-') t++;
+                            while (isdigit(*t)) t++;
+                            a2 = OP_IMM;
+                            s = t;
+                        }
+                        else if (t[0] == 'r' && t[1] >= '0' && t[1] <= '7' && !is_alphanumeric(t[2]))
+                        {
+                            a2 = OP_REG;
+                            s = t + 2;
+                        }
+                        else if (is_letter(*t))
+                        {
+                            n=0;
+                            while (is_alphanumeric(*t) && n<MAX_LABEL_LENGTH-1)
+                            {
+                                sym2[n++] = *t;
+                                t++;
+                            }
+                            sym2[n] = '\0';
+                            a2 = OP_DIR;
+                            s = t;
+                        }
+                        else
+                        {
+                            ctx->error_count++;
+                        }
+                    }
+                }
+
+                regs = (a1 == OP_REG) + (a2 == OP_REG);
+                non_regs = (a1 != OP_REG) + (a2 != OP_REG);
+
+                if (regs>= 1)
+                {
+                    off++; /*register before non-reg*/
+                }
+
+                /*extern for operand 1*/
+                if (a1 == OP_DIR && sym1[0] !='\0')
+                {
+                    sx = sym_table_lookup(sym1);
+                    if (sx&&sx->kind == SYM_EXTERN)
+                    {
+                        utmp = (ExtUse*)realloc(uses,sizeof(ExtUse)*(ext_count+1));
+                        if (!utmp)
+                        {
+                            fclose(in);
+                            free(entries);
+                            free(uses);
+                            return 0;
+                        }
+                        uses = utmp;
+                        uses[ext_count].name = sx->name;
+                        uses[ext_count].address = ic+(unsigned)off;
+                        ext_count++;
+                    }
+                    off++;/* took one non reg operand word*/
+                }
+                /*extern for operand 2 */
+                if (num_ops == 2 && a2 == OP_DIR && sym2[0] !='\0')
+                {
+                    sx = sym_table_lookup(sym2);
+                    if (sx&&sx->kind == SYM_EXTERN)
+                    {
+                        utmp = (ExtUse*)realloc(uses,sizeof(ExtUse)*(ext_count+1));
+                        if (!utmp)
+                        {
+                            fclose(in);
+                            free(entries);
+                            free(uses);
+                            return 0;
+                        }
+                        uses = utmp;
+                        uses[ext_count].name = sx->name;
+                        uses[ext_count].address = ic+(unsigned)off;
+                        ext_count++;
+                    }
+                    off++;
+                }
+                add_words = 1;
+
+                if (regs>=1) add_words+=1;
+
+                add_words+=(unsigned)non_regs;
+
+                ic+=add_words;
+            }
+        }
 
 
     }
@@ -271,6 +447,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     if (ctx->error_count > 0)
     {
         free(entries);
+        free(uses);
         return 0;
     }
     if (ent_count > 0)
@@ -279,9 +456,11 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
         {
             printf("Error, failed writing .ent");
             free(entries);
+            free(uses);
             return 0;
         }
     }
+    free(uses);
     free(entries);
     return 1;
 }

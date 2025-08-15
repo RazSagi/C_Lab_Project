@@ -11,6 +11,7 @@
 #include "helpers.h"
 #include "preproc.h"
 #include "context_asm.h"
+#include "second_pass.h"
 
 
 int main(int argc, char *argv[])
@@ -62,7 +63,17 @@ int main(int argc, char *argv[])
             }
             else
             {
-                printf("First pass good");
+                printf("First pass good\n");
+
+                if (!run_second_pass(out, &ctx))
+                {
+                    printf("Second pass found errors in '%s'\n",argv[i]);
+                    all_err = 1;
+                }
+                else
+                {
+                    printf("Second pass \n");
+                }
             }
         }
         free(in);

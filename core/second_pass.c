@@ -11,7 +11,7 @@
 
 #include "parser.h"
 
-/*builds new path for the new files we gonna create*/
+/*builds new path for the new files we are going to create*/
 static char *make_out_path (char *am_path, char *ext)
 {
     size_t n = strlen(am_path);
@@ -46,13 +46,15 @@ static char *make_out_path (char *am_path, char *ext)
 }
 
 /*the first line of the .ob in a b c d*/
-static int ob_write_all(char *am_path,int code_count, int data_count,unsigned *code_words,unsigned *data_words)
+static int ob_write_all(char *am_path,int code_count, int data_count,const unsigned *code_words,const unsigned *data_words)
 {
     char *ob_path = make_out_path(am_path,FILE_EXT_OB);
     FILE *out;
     char buffer[BASE4_STR_MAX];
     unsigned addr;
     int i;
+    unsigned w;
+    int pad;
     if (!ob_path) return 0;
 
     out = fopen(ob_path,"w");
@@ -73,10 +75,13 @@ static int ob_write_all(char *am_path,int code_count, int data_count,unsigned *c
     addr=100;
     for (i = 0 ;i<code_count; i++,addr++)
     {
+        w = code_words[i] & ((1u << WORD_BITS) - 1u);
         make_unique_base4(addr,buffer);
         fputs(buffer,out);
         fputc(' ',out);
-        make_unique_base4(code_words[i],buffer);
+        make_unique_base4(w,buffer);
+        pad = 5-(int)strlen(buffer);
+        while (pad-- > 0 ) fputc('a',out);
         fputs(buffer,out);
         fputc('\n',out);
     }
@@ -85,10 +90,13 @@ static int ob_write_all(char *am_path,int code_count, int data_count,unsigned *c
 
     for (i = 0 ;i<data_count; i++,addr++)
     {
+        w = data_words[i] & ((1u << WORD_BITS) - 1u);
         make_unique_base4(addr,buffer);
         fputs(buffer,out);
         fputc(' ',out);
-        make_unique_base4(data_words[i],buffer);
+        make_unique_base4(w,buffer);
+        pad = 5-(int)strlen(buffer);
+        while (pad-- > 0 ) fputc('a',out);
         fputs(buffer,out);
         fputc('\n',out);
     }
@@ -236,7 +244,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     }
     code_idx = 0;
 
-    /*running throught the lines in the .am file*/
+    /*running through the lines in the .am file*/
 
     while (fgets(line,sizeof(line),in))
     {
@@ -281,7 +289,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             s = sym_table_lookup(name);
             if (!s)
             {
-                printf("Error(line %d), .entry undfined\n",line_no);
+                printf("Error(line %d), .entry undefined\n",line_no);
                 ctx->error_count++;
                 continue;
             }
@@ -317,6 +325,13 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             char *t = NULL;
             int n = 0;
             Symbol *sx = NULL;
+            long imm1 = 0;
+            long imm2 = 0;
+            int has_imm1 = 0;
+            int has_imm2 = 0;
+            char *start=NULL;
+            char *endp= NULL;
+            long v = 0;
 
             sym1[0] = '\0';
             sym2[0] = '\0';
@@ -333,11 +348,19 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
 
                     if (*t == '#')
                     {
-                        t++;
-                        if (*t == '+' || *t == '-') t++;
-                        while (isdigit(*t)) t++;
-                        a1 = OP_IMM;
-                        s = t;
+                        start = t + 1;
+                        v = strtol(start,&endp,10);
+                        if (endp==start)
+                        {
+                            ctx->error_count++;
+                        }
+                        else
+                        {
+                            a1 = OP_IMM;
+                            imm1 = v;
+                            has_imm1 = 1;
+                            s=endp;
+                        }
 
                     }
                     else if (t[0] == 'r' && t[1] >= '0' && t[1] <= '7' && !is_alphanumeric(t[2]))
@@ -379,11 +402,19 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
 
                         if (*t == '#')
                         {
-                            t++;
-                            if (*t == '+' || *t == '-') t++;
-                            while (isdigit(*t)) t++;
-                            a2 = OP_IMM;
-                            s = t;
+                            start = t + 1;
+                            v = strtol(start,&endp,10);
+                            if (endp==start)
+                            {
+                                ctx->error_count++;
+                            }
+                            else
+                            {
+                                a2 = OP_IMM;
+                                imm2 = v;
+                                has_imm2 = 1;
+                                s = endp;
+                            }
                         }
                         else if (t[0] == 'r' && t[1] >= '0' && t[1] <= '7' && !is_alphanumeric(t[2]))
                         {
@@ -495,6 +526,40 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                 if (num_ops == 2 && a2 !=OP_REG)
                 {
                     off++;
+                }
+                {/* immediate operands words, ARE=ABS*/
+                    int base_idx = (int)code_idx;
+                    int idx_op1 = base_idx+1;
+                    int idx_op2;
+                    int val = 0;
+                    int pay_mask = (1 << (WORD_BITS-2))-1;
+                    int m;
+
+                    if (regs>= 1)
+                    {
+                        idx_op1 += 1;
+                    }
+                    idx_op2 = idx_op1;
+
+                    if (a1 != OP_REG)
+                    {
+                        idx_op2 += 1;
+                    }
+                    /*imm in op 1*/
+                    if (has_imm1 && idx_op1 <code_count)
+                    {
+                        m = ((int)imm1) & pay_mask;
+                        val = (m<<2) | ARE_ABS;
+                        code[idx_op1] = (unsigned)val;
+                    }
+
+                    /*imm in op 2*/
+                    if (has_imm2 && idx_op2 <code_count)
+                    {
+                        m = ((int)imm2) & pay_mask;
+                        val = (m<<2) | ARE_ABS;
+                        code[idx_op2] = (unsigned)val;
+                    }
                 }
                 add_words = 1;
 

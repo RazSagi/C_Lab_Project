@@ -199,12 +199,15 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     unsigned ic = 100;
     unsigned add_words = 0;
 
+    int status = 1; /*start of as success, if error status = 0 and goto cleanup*/
+
     /*trying to open the file*/
     in =fopen(am_file,"r");
     if (!in)
     {
         printf("Error, cannot open '%s'\n",am_file);
-        return 0;
+        status = 0;
+        goto cleanup;
     }
     /*running throught the lines in the .am file*/
 
@@ -261,10 +264,8 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             tmp = (EntItem*)realloc(entries,sizeof(EntItem)*(ent_count+1));
             if (!tmp)
             {
-                fclose(in);
-                free(entries);
-                free(uses);
-                return 0;
+                status = 0;
+                goto cleanup;
             }
             entries = tmp;
             entries[ent_count].name = s->name;
@@ -398,10 +399,8 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         utmp = (ExtUse*)realloc(uses,sizeof(ExtUse)*(ext_count+1));
                         if (!utmp)
                         {
-                            fclose(in);
-                            free(entries);
-                            free(uses);
-                            return 0;
+                            status = 0;
+                            goto cleanup;
                         }
                         uses = utmp;
                         uses[ext_count].name = sx->name;
@@ -419,10 +418,8 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         utmp = (ExtUse*)realloc(uses,sizeof(ExtUse)*(ext_count+1));
                         if (!utmp)
                         {
-                            fclose(in);
-                            free(entries);
-                            free(uses);
-                            return 0;
+                            status = 0;
+                            goto cleanup;
                         }
                         uses = utmp;
                         uses[ext_count].name = sx->name;
@@ -455,12 +452,25 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
         if (!ent_write_all(am_file, entries, ent_count))
         {
             printf("Error, failed writing .ent");
-            free(entries);
-            free(uses);
-            return 0;
+            status = 0;
+            goto cleanup;
         }
     }
-    free(uses);
+    if (ext_count > 0)
+    {
+        if (!ext_write_all(am_file,uses,ext_count))
+        {
+            printf("Error, failed writing .ext");
+            status = 0;
+            goto cleanup;
+        }
+    }
+   cleanup:
+    if (in)
+    {
+        fclose(in);
+    }
     free(entries);
-    return 1;
+    free(uses);
+    return status;
 }

@@ -182,8 +182,13 @@ static int ext_write_all(char *am_path, ExtUse *uses, int count)
 int run_second_pass(char *am_file,CtxAsm *ctx)
 {
     FILE *in;
-    char line[SYM_TABLE_MAX];
+    char line[1024];
     int line_no = 0;
+    char *q;
+
+    EntItem *entries = NULL;
+    int ent_count = 0;
+    EntItem *tmp;
 
     /*trying to open the file*/
     in =fopen(am_file,"r");
@@ -205,18 +210,21 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
         if (!p) continue;
 
         /*label */
-        char *q = p;
+        q = p;
         if (extract_label(&q,lbl) == 1)
         {
             p = q;
         }
 
         /*directive*/
-        dir_type = check_directive_type(&q,line_no,ctx);
+        dir_type = check_directive_type(&p,line_no,ctx);
         if (dir_type == DIR_ENTRY)
         {
             char name[MAX_LABEL_LENGTH];
             int n=0;
+            Symbol *s;
+
+            skip_spaces(&p);
 
             while (is_alphanumeric(*p)&& n<MAX_LABEL_LENGTH-1)
             {
@@ -228,15 +236,52 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             if (n==0)
             {
                 printf("Error(line %d), missing name after .entry\n",line_no);
+                ctx->error_count++;
+                continue;
             }
-            else if (!sym_table_mark_entry(name))
+            s = sym_table_lookup(name);
+            if (!s)
             {
-                printf("Error(line %d), .entry undifined\n",line_no);
+                printf("Error(line %d), .entry undfined\n",line_no);
+                ctx->error_count++;
+                continue;
             }
+            sym_table_mark_entry(name);
+
+
+            tmp = (EntItem*)realloc(entries,sizeof(EntItem)*(ent_count+1));
+            if (!tmp)
+            {
+                fclose(in);
+                free(entries);
+                return 0;
+            }
+            entries = tmp;
+            entries[ent_count].name = s->name;
+            entries[ent_count].address = (unsigned)s->value;
+            ent_count++;
             continue;
+
         }
+        /*here we will handle the .extern and instructions*/
+
 
     }
     fclose(in);
+    if (ctx->error_count > 0)
+    {
+        free(entries);
+        return 0;
+    }
+    if (ent_count > 0)
+    {
+        if (!ent_write_all(am_file, entries, ent_count))
+        {
+            printf("Error, failed writing .ent");
+            free(entries);
+            return 0;
+        }
+    }
+    free(entries);
     return 1;
 }

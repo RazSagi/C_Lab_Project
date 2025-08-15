@@ -80,3 +80,14 @@ Symbol* sym_table_lookup( char *name)
     }
     return 0;
 }
+
+/*marking entry in the symbol table
+ * searching for the given name and chage the is_entry field to 1
+ */
+int sym_table_mark_entry(char *name)
+{
+    Symbol *s = sym_table_lookup(name);
+    if (!s) return 0;
+    s->is_entry = 1;
+    return 1;
+}

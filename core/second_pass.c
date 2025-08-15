@@ -7,6 +7,8 @@
 #include "sym_table.h"
 #include "second_pass.h"
 
+#include "parser.h"
+
 /*builds new path for the new files we gonna create*/
 static char *make_out_path (char *am_path, char *ext)
 {
@@ -145,7 +147,7 @@ typedef struct
 
 /*doing the same as the .ent and writing the .ext file in 1 time*/
 
-static int ext_write_list(char *am_path, ExtUse *uses, int count)
+static int ext_write_all(char *am_path, ExtUse *uses, int count)
 {
     char *ext_path;
     FILE *out;
@@ -174,5 +176,67 @@ static int ext_write_list(char *am_path, ExtUse *uses, int count)
     }
     fclose(out);
     free(ext_path);
+    return 1;
+}
+
+int run_second_pass(char *am_file,CtxAsm *ctx)
+{
+    FILE *in;
+    char line[SYM_TABLE_MAX];
+    int line_no = 0;
+
+    /*trying to open the file*/
+    in =fopen(am_file,"r");
+    if (!in)
+    {
+        printf("Error, cannot open '%s'\n",am_file);
+        return 0;
+    }
+    /*running throught the lines in the .am file*/
+
+    while (fgets(line,sizeof(line),in))
+    {
+        char *p = first_letter(line);
+        char lbl[MAX_LABEL_LENGTH];
+        int dir_type;
+
+        line_no++;
+        /*line is empty or comment*/
+        if (!p) continue;
+
+        /*label */
+        char *q = p;
+        if (extract_label(&q,lbl) == 1)
+        {
+            p = q;
+        }
+
+        /*directive*/
+        dir_type = check_directive_type(&q,line_no,ctx);
+        if (dir_type == DIR_ENTRY)
+        {
+            char name[MAX_LABEL_LENGTH];
+            int n=0;
+
+            while (is_alphanumeric(*p)&& n<MAX_LABEL_LENGTH-1)
+            {
+                name[n++] = *p;
+                p++;
+            }
+            name[n] = '\0';
+
+            if (n==0)
+            {
+                printf("Error(line %d), missing name after .entry\n",line_no);
+            }
+            else if (!sym_table_mark_entry(name))
+            {
+                printf("Error(line %d), .entry undifined\n",line_no);
+            }
+            continue;
+        }
+
+    }
+    fclose(in);
     return 1;
 }

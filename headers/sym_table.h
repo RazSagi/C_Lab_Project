@@ -37,4 +37,7 @@ void sym_table_relocate(int del);
 /*returns pointer to the symbol*/
 Symbol* sym_table_lookup( char *name);
 
+/*marking entry in symbol table*/
+int sym_table_mark_entry(char *name);
+
 #endif

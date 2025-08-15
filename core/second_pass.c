@@ -42,12 +42,13 @@ static char *make_out_path (char *am_path, char *ext)
 }
 
 /*the first line of the .ob in a b c d*/
-static int ob_write_header(char *am_path,int code_words, int data_words)
+static int ob_write_all(char *am_path,int code_count, int data_count,unsigned *code_words,unsigned *data_words)
 {
     char *ob_path = make_out_path(am_path,FILE_EXT_OB);
     FILE *out;
     char buffer[BASE4_STR_MAX];
-
+    unsigned addr;
+    int i;
     if (!ob_path) return 0;
 
     out = fopen(ob_path,"w");
@@ -56,16 +57,38 @@ static int ob_write_header(char *am_path,int code_words, int data_words)
         free(ob_path);
         return 0;
     }
-
-    make_unique_base4((unsigned)code_words,buffer);
+    /*header*/
+    make_unique_base4((unsigned)code_count,buffer);
     fputs(buffer,out);
-
     fputc(' ',out);
-
-    make_unique_base4((unsigned)data_words,buffer);
+    make_unique_base4((unsigned)data_count,buffer);
     fputs(buffer,out);
-
     fputc('\n',out);
+
+    /*code words*/
+    addr=100;
+    for (i = 0 ;i<code_count; i++,addr++)
+    {
+        make_unique_base4(addr,buffer);
+        fputs(buffer,out);
+        fputc(' ',out);
+        make_unique_base4(code_words[i],buffer);
+        fputs(buffer,out);
+        fputc("/n",out);
+    }
+
+    /*data words*/
+
+    for (i = 0 ;i<data_count; i++,addr++)
+    {
+        make_unique_base4(addr,buffer);
+        fputs(buffer,out);
+        fputc(' ',out);
+        make_unique_base4(data_words[i],buffer);
+        fputs(buffer,out);
+        fputc('\n',out);
+    }
+
 
     fclose(out);
     free(ob_path);

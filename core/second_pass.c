@@ -199,6 +199,10 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     unsigned ic = 100;
     unsigned add_words = 0;
 
+    unsigned *code = NULL;
+    int code_count = 0;
+    unsigned code_idx = 0;
+
     int status = 1; /*start of as success, if error status = 0 and goto cleanup*/
 
     /*trying to open the file*/
@@ -209,6 +213,24 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
         status = 0;
         goto cleanup;
     }
+
+    /* allocate code buffer*/
+
+    code_count = ctx->IC - IC_START;
+    if (code_count<0) code_count =0;
+
+    if (code_count>0)
+    {
+        code = (unsigned*)calloc((size_t)code_count,sizeof(unsigned));
+        if (!code)
+        {
+            printf("Error, out of memory for code image\n");
+            status = 0;
+            goto cleanup;
+        }
+    }
+    code_idx = 0;
+
     /*running throught the lines in the .am file*/
 
     while (fgets(line,sizeof(line),in))
@@ -382,6 +404,38 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     }
                 }
 
+                int op_id = opcode_by_name(p,tok_len);
+                unsigned src_mode=0;
+                unsigned dst_mode=0;
+                unsigned first = 0;
+
+                /*map addressing modes*/
+                if (num_ops == 2)
+                {
+                    src_mode = (unsigned)a1;
+                    dst_mode = (unsigned)a2;
+                }
+                else if (num_ops == 1)
+                {
+                    src_mode = (unsigned)OP_NONE;
+                    dst_mode = (unsigned)a1;
+                }
+                else
+                {
+                    src_mode = (unsigned)OP_NONE;
+                    dst_mode = (unsigned)OP_NONE;
+                }
+
+                first = ((unsigned)op_id << OPCODE_SHIFT);
+                first |= (src_mode<<SRC_SHIFT);
+                first |= (dst_mode<<DST_SHIFT);
+                first |= ((unsigned)ARE_ABS<<ARE_SHIFT);
+
+                if (code_idx < (unsigned)code_count)
+                {
+                    code[code_idx] = first;
+                }
+
                 regs = (a1 == OP_REG) + (a2 == OP_REG);
                 non_regs = (a1 != OP_REG) + (a2 != OP_REG);
 
@@ -437,6 +491,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                 add_words+=(unsigned)non_regs;
 
                 ic+=add_words;
+                code_idx+=add_words;
             }
         }
 
@@ -467,6 +522,15 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             goto cleanup;
         }
     }
+    if (code_count >0 || ctx->DC>0)
+    {
+        if (ob_write_all(am_file,code_count,ctx->DC,code,(unsigned*)ctx->data_img))
+        {
+            printf("Error, failed writing .ob");
+            status = 0;
+            goto cleanup;
+        }
+    }
    cleanup:
     if (in)
     {
@@ -474,5 +538,6 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     }
     free(entries);
     free(uses);
+    free(code);
     return status;
 }

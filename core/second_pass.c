@@ -202,6 +202,11 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     unsigned *code = NULL;
     int code_count = 0;
     unsigned code_idx = 0;
+    int op_id;
+
+    unsigned src_mode;
+    unsigned dst_mode;
+    unsigned first;
 
     int status = 1; /*start of as success, if error status = 0 and goto cleanup*/
 
@@ -404,10 +409,11 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     }
                 }
 
-                int op_id = opcode_by_name(p,tok_len);
-                unsigned src_mode=0;
-                unsigned dst_mode=0;
-                unsigned first = 0;
+
+                op_id = opcode_by_name(p,tok_len);
+                src_mode=0;
+                dst_mode=0;
+                first = 0;
 
                 /*map addressing modes*/
                 if (num_ops == 2)
@@ -463,8 +469,10 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     }
 
                 }
-                off++;/* took one non reg operand word*/
-
+                if (a1 != OP_REG)
+                {
+                    off++;/* took one non reg operand word*/
+                }
                 /*extern for operand 2 */
                 if (num_ops == 2 && a2 == OP_DIR && sym2[0] !='\0')
                 {
@@ -482,6 +490,10 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         uses[ext_count].address = ic+(unsigned)off;
                         ext_count++;
                     }
+
+                }
+                if (num_ops == 2 && a2 !=OP_REG)
+                {
                     off++;
                 }
                 add_words = 1;
@@ -500,15 +512,25 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     fclose(in);
     if (ctx->error_count > 0)
     {
-        free(entries);
-        free(uses);
-        return 0;
+        status = 0;
+        goto cleanup;
     }
+    /*writes .ob, if succeed printing .ent .ext*/
+    if (code_count >0 || ctx->DC>0)
+    {
+        if (!ob_write_all(am_file,code_count,ctx->DC,code,(unsigned*)ctx->data_img))
+        {
+            printf("Error, failed writing .ob\n");
+            status = 0;
+            goto cleanup;
+        }
+    }
+
     if (ent_count > 0)
     {
         if (!ent_write_all(am_file, entries, ent_count))
         {
-            printf("Error, failed writing .ent");
+            printf("Error, failed writing .ent\n");
             status = 0;
             goto cleanup;
         }
@@ -517,20 +539,12 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     {
         if (!ext_write_all(am_file,uses,ext_count))
         {
-            printf("Error, failed writing .ext");
+            printf("Error, failed writing .ext\n");
             status = 0;
             goto cleanup;
         }
     }
-    if (code_count >0 || ctx->DC>0)
-    {
-        if (ob_write_all(am_file,code_count,ctx->DC,code,(unsigned*)ctx->data_img))
-        {
-            printf("Error, failed writing .ob");
-            status = 0;
-            goto cleanup;
-        }
-    }
+
    cleanup:
     if (in)
     {

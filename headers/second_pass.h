@@ -1,6 +1,4 @@
-//
-// Created by עמירם שגיא on 14/08/2025.
-//
+
 
 #ifndef SECOND_PASS_H
 #define SECOND_PASS_H

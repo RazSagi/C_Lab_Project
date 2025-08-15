@@ -74,7 +74,7 @@ static int ob_write_all(char *am_path,int code_count, int data_count,unsigned *c
         fputc(' ',out);
         make_unique_base4(code_words[i],buffer);
         fputs(buffer,out);
-        fputc("/n",out);
+        fputc('\n',out);
     }
 
     /*data words*/
@@ -92,5 +92,87 @@ static int ob_write_all(char *am_path,int code_count, int data_count,unsigned *c
 
     fclose(out);
     free(ob_path);
+    return 1;
+}
+
+/*handles .ent and .ent file*/
+typedef struct
+{
+    char *name;
+    unsigned address;
+}EntItem;
+
+/*write the .ent file same as we did with the .ob*/
+
+static int ent_write_all(char *am_path, EntItem *items, int count)
+{
+    char *ent_path;
+    FILE *out;
+    int i;
+    char buffer[BASE4_STR_MAX];
+
+    if (count <= 0) return 1;
+
+    ent_path = make_out_path(am_path,FILE_EXT_ENT);
+    if (!ent_path) return 0;
+
+    out = fopen(ent_path,"w");
+    if (!out)
+    {
+        free(ent_path);
+        return 0;
+    }
+
+    for (i = 0; i<count; i++)
+    {
+        make_unique_base4(items[i].address,buffer);
+        fputs(items[i].name,out);
+        fputc(' ',out);
+        fputs(buffer,out);
+        fputc('\n',out);
+    }
+    fclose(out);
+    free(ent_path);
+    return 1;
+}
+
+/*same as the .ent but for .extern files*/
+typedef struct
+{
+    char *name;
+    unsigned address;
+}ExtUse;
+
+/*doing the same as the .ent and writing the .ext file in 1 time*/
+
+static int ext_write_list(char *am_path, ExtUse *uses, int count)
+{
+    char *ext_path;
+    FILE *out;
+    int i;
+    char buffer[BASE4_STR_MAX];
+
+    if (count <= 0) return 1;
+
+    ext_path = make_out_path(am_path,FILE_EXT_EXT);
+    if (!ext_path) return 0;
+
+    out = fopen(ext_path,"w");
+    if (!out)
+    {
+        free(ext_path);
+        return 0;
+    }
+
+    for (i = 0; i<count; i++)
+    {
+        make_unique_base4(uses[i].address,buffer);
+        fputs(uses[i].name,out);
+        fputc(' ',out);
+        fputs(buffer,out);
+        fputc('\n',out);
+    }
+    fclose(out);
+    free(ext_path);
     return 1;
 }

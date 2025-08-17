@@ -215,3 +215,71 @@ int opcode_by_name(char *name,int len)
     }
     return -1;
 }
+
+/*this method checks if a given opernad is legal*/
+int operands_legal(int op_id, int a1, int a2)
+{
+    /*op_id is by the instruction array and by the booklet instructions*/
+    switch (op_id)
+    {
+    case 0:/*mov*/
+    case 2:/*add*/
+    case 3:/*sub*/
+        {
+            if (a1 == OP_NONE) return 0;
+            if ( a2 == OP_NONE) return 0;
+            if (a2 == OP_IMM) return 0;
+            return 1;
+        }
+    case 1:/*cmp*/
+        {
+            if (a1 == OP_NONE) return 0;
+            if (a2 == OP_NONE) return 0;
+            return 1;
+        }
+    case 6:/*lea*/
+        {
+            if (a1 == OP_NONE || a2 == OP_NONE) return 0;
+            if (a1 != OP_DIR) return 0;
+            if (a2 == OP_IMM) return 0;
+            return 1;
+        }
+    case 4:/*not*/
+    case 5:/*clr*/
+    case 7:/*inc*/
+    case 8:/*dec*/
+        {
+            if (a2!=OP_NONE) return 0;
+            if (a1 == OP_IMM||a1 == OP_NONE) return 0;
+            return 1;
+        }
+    case 9:/*jmp*/
+    case 10:/*bne*/
+    case 13:
+        {
+            if (a2 != OP_NONE) return 0;
+            if (a1 != OP_DIR) return 0;
+            return 1;
+        }
+    case 11:/*red*/
+        {
+            if (a2!=OP_NONE) return 0;
+            if (a1!=OP_REG) return 0;
+            return 1;
+        }
+    case 12:
+        {
+            if (a2 !=OP_NONE) return 0;
+            if (a1 == OP_NONE)return 0;
+            return 1;
+        }
+    case 14:
+    case 15:
+        {
+            if (a1 != OP_NONE||a2!=OP_NONE) return 0;
+            return 1;
+        }
+
+    }
+    return 0;
+}

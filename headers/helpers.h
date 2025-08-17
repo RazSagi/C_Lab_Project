@@ -19,6 +19,8 @@ int opcode_count_operand( char *op, int len);
 int make_unique_base4(unsigned value, char out[BASE4_STR_MAX]);
 void print_unique_base4(FILE *f,unsigned value);
 int opcode_by_name(char *name,int len);
+int operands_legal(int op_id, int a1, int a2);
+
 
 
 

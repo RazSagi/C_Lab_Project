@@ -342,6 +342,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             int pay_mask = 0;
             int val = 0;
             int m=0;
+            int valid;
 
             pay_mask = (1 << (WORD_BITS - 2)) - 1;
 
@@ -456,6 +457,13 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
 
 
                 op_id = opcode_by_name(p,tok_len);
+                valid = operands_legal(op_id,a1,a2);
+                if (!valid)
+                {
+                    printf("Error(line %d), invalid adressing for opcode\n",line_no);
+                    ctx->error_count++;
+                    continue;
+                }
                 src_mode=0;
                 dst_mode=0;
                 first = 0;

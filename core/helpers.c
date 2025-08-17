@@ -283,3 +283,32 @@ int operands_legal(int op_id, int a1, int a2)
     }
     return 0;
 }
+
+/*checking for valid text in operand*/
+int validate_operand_delim(const char *s, int line_no,CtxAsm *ctx,int allow_comma)
+{
+    char c;
+    if (!s)return 1;
+    c = *s;
+    if (c=='\0' || c=='\n'||c=='\r'||c=='\t'||c== ' '||(allow_comma && c==','))
+    {
+        return 1;
+    }
+    printf("Error (line %d), Invalid char after operand\n", line_no);
+    ctx->error_count++;
+    return 0;
+}
+
+/*checking for no extra text after operand*/
+int validate_no_extra(const char *s, int line_no,CtxAsm *ctx)
+{
+    const char *p = s;
+    while (p&&(*p== ' '||*p == '\t')) p++;
+    if (!p || *p=='\0'||*p=='\n'||*p=='\r'||*p==';')
+    {
+        return 1;
+    }
+    printf("Error (line %d), extra char after operand\n", line_no);
+    ctx->error_count++;
+    return 0;
+}

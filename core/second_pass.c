@@ -216,8 +216,6 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     unsigned dst_mode;
     unsigned first;
 
-    char *trail= NULL;
-    char *chk = NULL;
 
 
 
@@ -293,14 +291,8 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                 continue;
             }
             /*checking for extra text after .entry*/
-            chk = p;
-            skip_spaces(&chk);
-            if (*chk && *chk!=';' && *chk!='\n' && *chk!='\r')
-            {
-                printf("Error(line %d), text after .entry name\n",line_no);
-                ctx->error_count++;
-                continue;
-            }
+            if (!validate_no_extra(p, line_no, ctx)) continue;
+
             s = sym_table_lookup(name);
             if (!s)
             {
@@ -419,6 +411,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         a1 = OP_REG;
                         r1 = t[1] - '0';
                         s = t + 2;
+                        if (!validate_operands_delim(s, line_no, ctx, 1)) continue;
                     }
                     else if (is_letter(*t))
                     {
@@ -431,6 +424,8 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         sym1[n] = '\0';
                         a1 = OP_DIR;
                         s = t;
+                        if (!validate_operands_delim(s, line_no, ctx, 1)) continue;
+
                     }
                     else
                     {
@@ -467,12 +462,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                                 has_imm2 = 1;
                                 s = endp;
                                 /*check for delimiter after immediate*/
-                                if (!(*s == '\0'|| *s == '\n' || *s == '\r'|| *s == '\t'|| *s == ','))
-                                {
-                                    printf("Error(line %d), invalid char in immediate\n",line_no);
-                                    ctx->error_count++;
-                                    continue;
-                                }
+                                if (!validate_operands_delim(s, line_no, ctx, 1)) continue;
                             }
                         }
                         else if (t[0] == 'r' && t[1] >= '0' && t[1] <= '7' && !is_alphanumeric(t[2]))
@@ -480,6 +470,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                             a2 = OP_REG;
                             r2 = t[1] - '0';
                             s = t + 2;
+                            if (!validate_operands_delim(s, line_no, ctx, 0)) continue;
                         }
                         else if (is_letter(*t))
                         {
@@ -492,6 +483,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                             sym2[n] = '\0';
                             a2 = OP_DIR;
                             s = t;
+                            if (!validate_operands_delim(s, line_no, ctx, 0)) continue;
                         }
                         else
                         {
@@ -518,14 +510,8 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     continue;
                 }
                 /*checks if there is extra text after the instruction operands*/
-                trail = s;
-                skip_spaces(&trail);
-                if (*trail && *trail != ';' && *trail != '\n' && *trail != '\r')
-                {
-                    printf("Error(line %d), text after instruction\n",line_no);
-                    ctx->error_count++;
-                    continue;
-                }
+                if (!validate_no_extra(s, line_no, ctx)) continue;
+
 
                 /*check if the call target is a valid code label*/
                 if ((op_id == 9 || op_id == 10 || op_id == 13) && a1 == OP_DIR)

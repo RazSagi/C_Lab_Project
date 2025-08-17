@@ -72,7 +72,7 @@ static int ob_write_all(char *am_path,int code_count, int data_count,const unsig
     fputc('\n',out);
 
     /*code words*/
-    addr=100;
+    addr=IC_START;
     for (i = 0 ;i<code_count; i++,addr++)
     {
         w = code_words[i] & ((1u << WORD_BITS) - 1u);
@@ -204,7 +204,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     int ext_count = 0;
     ExtUse *utmp;
 
-    unsigned ic = 100;
+    unsigned ic = IC_START;
     unsigned add_words = 0;
 
     unsigned *code = NULL;
@@ -215,6 +215,8 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     unsigned src_mode;
     unsigned dst_mode;
     unsigned first;
+
+
 
     int status = 1; /*start of as success, if error status = 0 and goto cleanup*/
 
@@ -339,18 +341,12 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             int idx_op1=0;
             int idx_op2=0;
             int pay = 0;
-            int pay_mask = 0;
             int val = 0;
             int m=0;
             int valid;
-            int pay_bits = 0;
-            int min_imm = 0;
-            int max_imm = 0;
+            unsigned pay_mask = PAYLOAD_MASK;
 
-            pay_mask = (1 << (WORD_BITS - 2)) - 1;
-            pay_bits = WORD_BITS-2;
-            min_imm = -(1<<(pay_bits-1));
-            max_imm = (1<<(pay_bits-1))-1;
+
 
             sym1[0] = '\0';
             sym2[0] = '\0';
@@ -564,13 +560,13 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     off++;
                 }
                 /*immediate range checks*/
-                if (has_imm1 && (imm1<min_imm || imm1>max_imm))
+                if (has_imm1 && (imm1<IMM_MIN || imm1>IMM_MAX))
                 {
                     printf("Error(line %d), immediate out of bounds\n",line_no);
                     ctx->error_count++;
                     continue;
                 }
-                if (has_imm2 && (imm2<min_imm || imm2>max_imm))
+                if (has_imm2 && (imm2<IMM_MIN || imm2>IMM_MAX))
                 {
                     printf("Error(line %d), immediate out of bounds\n",line_no);
                     ctx->error_count++;
@@ -682,6 +678,8 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                                 if (sx->value <0 || sx->value >pay_mask)
                                 {
                                     printf("Error(line %d), adress out of range for symbol'%s'\n",line_no,sx->name);
+                                    ctx->error_count++;
+                                    continue;
                                 }
                                 m = ((int)sx->value) & pay_mask;
                                 val = (m<<2) | ARE_REL;
@@ -708,7 +706,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
 
 
     }
-    fclose(in);
+
     if (ctx->error_count > 0)
     {
         status = 0;
@@ -752,5 +750,6 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     free(entries);
     free(uses);
     free(code);
+
     return status;
 }

@@ -1,25 +1,17 @@
-; sanity.as
+; sanity mix
 .entry START
 .extern EXT1
 
-STR:    .string "hi"
-ARR:    .data 5, -3, 0, 12
-MAT:    .mat [2][3] 1, 2, 3, 4, 5
+START:  mov  #5, r1
+        add  r1, r2
+        lea  START, r3
+        cmp  #127, r0
+        cmp  #128, r0      ; should error: immediate out of bounds
+        prn  #-1
+        red  r2
+        red  r9            ; should error: invalid addressing (expects register)
+        jmp  EXT1
+        stop
 
-START:  mov   #5, r2
-        cmp   ARR, r2
-        add   r2, ARR
-        sub   #1, r2
-        lea   STR, r3
-        prn   #7
-        red   r6
-        not   r3
-        inc   r3
-        dec   r3
-        jmp   J1
-        bne   J2
-        jsr   EXT1
-        rts
-
-J1:     mov   r3, r5
-J2:     stop
+DATA1:  .data 10, -3, 127
+TXT:    .string "ok"

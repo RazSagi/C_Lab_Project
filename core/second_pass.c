@@ -271,6 +271,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
         {
             char name[MAX_LABEL_LENGTH];
             int n=0;
+            int k;
             Symbol *s;
 
             skip_spaces(&p);
@@ -295,19 +296,34 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                 ctx->error_count++;
                 continue;
             }
-            sym_table_mark_entry(name);
-
-
-            tmp = (EntItem*)realloc(entries,sizeof(EntItem)*(ent_count+1));
-            if (!tmp)
+            /*checks for entry extern or dupe entry*/
+            if (s->kind == SYM_EXTERN)
             {
-                status = 0;
-                goto cleanup;
+                printf("Error(line %d), .entry on extern symbol '%s'\n",line_no,s->name);
+                ctx->error_count++;
+                continue;
             }
-            entries = tmp;
-            entries[ent_count].name = s->name;
-            entries[ent_count].address = (unsigned)s->value;
-            ent_count++;
+            sym_table_mark_entry(name);
+            for (k=0;k<ent_count;k++)
+            {
+                if (strcmp(entries[k].name,s->name) == 0)
+                {
+                    break;
+                }
+            }
+            if ( k == ent_count)
+            {
+                tmp = (EntItem*)realloc(entries,sizeof(EntItem)*(ent_count+1));
+                if (!tmp)
+                {
+                    status = 0;
+                    goto cleanup;
+                }
+                entries = tmp;
+                entries[ent_count].name = s->name;
+                entries[ent_count].address = (unsigned)s->value;
+                ent_count++;
+            }
             continue;
 
         }

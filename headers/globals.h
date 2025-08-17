@@ -50,11 +50,11 @@
 #define ARE_REL 2
 
 #define PAYLOAD_BITS (WORD_BITS -2)
-
-#define IMM_MIN (-1(1L << (PAYLOAD_BITS - 1)))
+#define PAYLOAD_MASK ((1u << PAYLOAD_BITS) - 1u)
+#define IMM_MIN (-(1L << (PAYLOAD_BITS - 1)))
 #define IMM_MAX ((1L << (PAYLOAD_BITS - 1)) - 1L)
 
-#define PAYLOAD_MASK ((unsigned)((1U << PAYLOAD_BITS)-1U))
+
 
 
 

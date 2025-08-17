@@ -216,6 +216,9 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
     unsigned dst_mode;
     unsigned first;
 
+    char *trail= NULL;
+    char *chk = NULL;
+
 
 
     int status = 1; /*start of as success, if error status = 0 and goto cleanup*/
@@ -286,6 +289,15 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             if (n==0)
             {
                 printf("Error(line %d), missing name after .entry\n",line_no);
+                ctx->error_count++;
+                continue;
+            }
+            /*checking for extra text after .entry*/
+            chk = p;
+            skip_spaces(&chk);
+            if (*chk && *chk!=';' && *chk!='\n' && *chk!='\r')
+            {
+                printf("Error(line %d), text after .entry name\n",line_no);
                 ctx->error_count++;
                 continue;
             }
@@ -490,6 +502,16 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     ctx->error_count++;
                     continue;
                 }
+                /*checks if there is extra text after the instruction operands*/
+                trail = s;
+                skip_spaces(&trail);
+                if (*trail && *trail != ';' && *trail != '\n' && *trail != '\r')
+                {
+                    printf("Error(line %d), text after instruction\n",line_no);
+                    ctx->error_count++;
+                    continue;
+                }
+
                 /*check if the call target is a valid code label*/
                 if ((op_id == 9 || op_id == 10 || op_id == 13) && a1 == OP_DIR)
                 {

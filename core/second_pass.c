@@ -490,6 +490,18 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     ctx->error_count++;
                     continue;
                 }
+                /*check if the call target is a valid code label*/
+                if ((op_id == 9 || op_id == 10 || op_id == 13) && a1 == OP_DIR)
+                {
+                    sx = sym_table_lookup(sym1);
+                    if (sx && sx ->kind ==SYM_DATA)
+                    {
+                        printf("Error(line %d), call target '%s' must be code label\n",line_no,sym1);
+                        ctx->error_count++;
+                        continue;
+                    }
+                }
+
                 src_mode=0;
                 dst_mode=0;
                 first = 0;

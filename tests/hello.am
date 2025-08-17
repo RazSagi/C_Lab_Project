@@ -1,17 +1,16 @@
-; sanity mix
-.entry START
+; bad_branch.as — should flag jumping to a data label
+
 .extern EXT1
+.entry START
 
-START:  mov  #5, r1
-        add  r1, r2
-        lea  START, r3
-        cmp  #127, r0
-        cmp  #128, r0      ; should error: immediate out of bounds
-        prn  #-1
-        red  r2
-        red  r9            ; should error: invalid addressing (expects register)
-        jmp  EXT1
-        stop
+DATA:    .data 1, 2, 3
+MSG:     .string "ok"
 
-DATA1:  .data 10, -3, 127
-TXT:    .string "ok"
+START:   mov  #5, r1
+         jsr  EXT1        ; allowed: extern target
+         jmp  DATA        ; should error: data label used as branch target
+         bne  LOOP        ; ok: code label
+
+LOOP:    dec  r1
+         bne  LOOP
+         stop

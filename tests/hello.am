@@ -1,17 +1,21 @@
-; A) duplicate .entry and .entry on extern
+; secondpass_strict.as — short lines, second-pass checks only
 .extern OUT
 .entry START
-.entry START          ; duplicate entry -> error
-.entry OUT            ; entry on extern -> error
+.entry OUT
 
-; B) code-only target check (jmp/bne/jsr to DATA -> error)
-DATA:   .data 1,2,3
-START:  jmp  DATA     ; must be code label -> error
-        bne  DATA     ; must be code label -> error
-        jsr  DATA     ; must be code label -> error
+DATA: .data 5,6,7
+STR: .string "hi"
 
-; C) immediate range (assuming 10-bit payload -> range -512..511)
-        add  #512, r1 ; out of bounds -> error
-        sub  #-513, r2 ; out of bounds -> error
+START: mov #5, r1
+add r1, r2
+lea DATA, r3
 
-        stop
+jsr DATA
+jmp DATA
+bne DATA
+
+cmp #5000, r0
+cmp #-5000, r1
+
+mov UNDECL, r2
+stop

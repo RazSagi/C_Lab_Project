@@ -623,6 +623,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         }
                         else
                         {
+                            printf("Error(line %d), undefined symbol '%s'\n", line_no, sym1);
                             ctx->error_count++;
                         }
                     }
@@ -645,6 +646,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         }
                         else
                         {
+                            printf("Error(line %d), undefined symbol '%s'\n", line_no, sym2);
                             ctx->error_count++;
                         }
                     }

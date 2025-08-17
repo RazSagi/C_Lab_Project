@@ -397,12 +397,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                             s=endp;
 
                             /*check for delimiter after immediate*/
-                            if (!(*s == '\0'|| *s == '\n' || *s == '\r'|| *s == '\t'|| *s == ','))
-                            {
-                                printf("Error(line %d), invalid char in immediate\n",line_no);
-                                ctx->error_count++;
-                                continue;
-                            }
+                            if (!validate_operand_delim(s, line_no, ctx, 1)) continue;
                         }
 
                     }
@@ -411,7 +406,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         a1 = OP_REG;
                         r1 = t[1] - '0';
                         s = t + 2;
-                        if (!validate_operands_delim(s, line_no, ctx, 1)) continue;
+                        if (!validate_operand_delim(s, line_no, ctx, 1)) continue;
                     }
                     else if (is_letter(*t))
                     {
@@ -424,7 +419,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         sym1[n] = '\0';
                         a1 = OP_DIR;
                         s = t;
-                        if (!validate_operands_delim(s, line_no, ctx, 1)) continue;
+                        if (!validate_operand_delim(s, line_no, ctx, 1)) continue;
 
                     }
                     else
@@ -462,7 +457,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                                 has_imm2 = 1;
                                 s = endp;
                                 /*check for delimiter after immediate*/
-                                if (!validate_operands_delim(s, line_no, ctx, 1)) continue;
+                                if (!validate_operand_delim(s, line_no, ctx, 0)) continue;
                             }
                         }
                         else if (t[0] == 'r' && t[1] >= '0' && t[1] <= '7' && !is_alphanumeric(t[2]))
@@ -470,7 +465,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                             a2 = OP_REG;
                             r2 = t[1] - '0';
                             s = t + 2;
-                            if (!validate_operands_delim(s, line_no, ctx, 0)) continue;
+                            if (!validate_operand_delim(s, line_no, ctx, 0)) continue;
                         }
                         else if (is_letter(*t))
                         {
@@ -483,7 +478,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                             sym2[n] = '\0';
                             a2 = OP_DIR;
                             s = t;
-                            if (!validate_operands_delim(s, line_no, ctx, 0)) continue;
+                            if (!validate_operand_delim(s, line_no, ctx, 0)) continue;
                         }
                         else
                         {
@@ -688,60 +683,12 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     /*op one*/
                     if (a1 == OP_DIR && idx_op1 <code_count)
                     {
-                        sx = sym_table_lookup(sym1);
-                        if (sx)
-                        {
-                            if (sx->kind == SYM_EXTERN)
-                            {
-                                code[idx_op1] = (unsigned)ARE_EXT;
-                            }
-                            else
-                            {
-                                if (sx->value <0 || sx->value >pay_mask)
-                                {
-                                    printf("Error(line %d), adress out of range for symbol'%s'\n",line_no,sx->name);
-                                    ctx->error_count++;
-                                    continue;
-                                }
-                                m = ((int)sx->value) & pay_mask;
-                                val = (m<<2) | ARE_REL;
-                                code[idx_op1] = (unsigned)val;
-                            }
-                        }
-                        else
-                        {
-                            printf("Error(line %d), undefined symbol '%s'\n", line_no, sym1);
-                            ctx->error_count++;
-                        }
+                        if (!encode_direct_extern(sym1, code, idx_op1, line_no, ctx)) continue;
                     }
                     /* op two*/
                     if (num_ops == 2 && idx_op2 <code_count&& a2 == OP_DIR)
                     {
-                        sx = sym_table_lookup(sym2);
-                        if (sx)
-                        {
-                            if (sx->kind == SYM_EXTERN)
-                            {
-                                code[idx_op2] = (unsigned)ARE_EXT;
-                            }
-                            else
-                            {
-                                if (sx->value <0 || sx->value >pay_mask)
-                                {
-                                    printf("Error(line %d), adress out of range for symbol'%s'\n",line_no,sx->name);
-                                    ctx->error_count++;
-                                    continue;
-                                }
-                                m = ((int)sx->value) & pay_mask;
-                                val = (m<<2) | ARE_REL;
-                                code[idx_op2] = (unsigned)val;
-                            }
-                        }
-                        else
-                        {
-                            printf("Error(line %d), undefined symbol '%s'\n", line_no, sym2);
-                            ctx->error_count++;
-                        }
+                        if (!encode_direct_extern(sym2, code, idx_op2, line_no, ctx)) continue;
                     }
                 }
                 add_words = 1;

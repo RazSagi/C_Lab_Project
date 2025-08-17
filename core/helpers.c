@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "helpers.h"
+#include "sym_table.h"
 /* Array of Directives*/
 static  char *directives[] = {
     ".data", ".string", ".entry", ".extern", NULL
@@ -311,4 +312,29 @@ int validate_no_extra(const char *s, int line_no,CtxAsm *ctx)
     printf("Error (line %d), extra char after operand\n", line_no);
     ctx->error_count++;
     return 0;
+}
+/*encoding direct or extern return 1 on success and 0+print error on failure*/
+int encode_direct_extern(const char *symname,unsigned *code, int idx,int line_no,CtxAsm *ctx)
+{
+    unsigned pay_mask = PAYLOAD_MASK;
+    Symbol *sx = sym_table_lookup((char*)symname);
+    if (!sx)
+    {
+        printf("Error(line %d), undifined symbol '%s'\n", line_no,symname);
+        ctx->error_count++;
+        return 0;
+    }
+    if (sx->kind == SYM_EXTERN)
+    {
+        code[idx] = (unsigned)ARE_EXT;
+        return 1;
+    }
+    if (sx->value < 0 || sx->value > (int)pay_mask)
+    {
+        printf("Error (line %d), address out of range for symbol '%s'\n", line_no,sx->name);
+        ctx->error_count++;
+        return 0;
+    }
+    code[idx] = (((unsigned)sx->value && pay_mask) << 2) | ARE_REL;
+    return 1;
 }

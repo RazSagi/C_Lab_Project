@@ -474,7 +474,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                 valid = operands_legal(op_id,a1,a2);
                 if (!valid)
                 {
-                    printf("Error(line %d), invalid adressing for opcode\n",line_no);
+                    printf("Error(line %d), invalid addressing for opcode\n",line_no);
                     ctx->error_count++;
                     continue;
                 }

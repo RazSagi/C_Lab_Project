@@ -1,16 +1,17 @@
-; bad_branch.as — should flag jumping to a data label
-
-.extern EXT1
+; A) duplicate .entry and .entry on extern
+.extern OUT
 .entry START
+.entry START          ; duplicate entry -> error
+.entry OUT            ; entry on extern -> error
 
-DATA:    .data 1, 2, 3
-MSG:     .string "ok"
+; B) code-only target check (jmp/bne/jsr to DATA -> error)
+DATA:   .data 1,2,3
+START:  jmp  DATA     ; must be code label -> error
+        bne  DATA     ; must be code label -> error
+        jsr  DATA     ; must be code label -> error
 
-START:   mov  #5, r1
-         jsr  EXT1        ; allowed: extern target
-         jmp  DATA        ; should error: data label used as branch target
-         bne  LOOP        ; ok: code label
+; C) immediate range (assuming 10-bit payload -> range -512..511)
+        add  #512, r1 ; out of bounds -> error
+        sub  #-513, r2 ; out of bounds -> error
 
-LOOP:    dec  r1
-         bne  LOOP
-         stop
+        stop

@@ -403,6 +403,14 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                             imm1 = v;
                             has_imm1 = 1;
                             s=endp;
+
+                            /*check for delimiter after immediate*/
+                            if (!(*s == '\0'|| *s == '\n' || *s == '\r'|| *s == '\t'|| *s == ','))
+                            {
+                                printf("Error(line %d), invalid char in immediate\n",line_no);
+                                ctx->error_count++;
+                                continue;
+                            }
                         }
 
                     }
@@ -458,6 +466,13 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                                 imm2 = v;
                                 has_imm2 = 1;
                                 s = endp;
+                                /*check for delimiter after immediate*/
+                                if (!(*s == '\0'|| *s == '\n' || *s == '\r'|| *s == '\t'|| *s == ','))
+                                {
+                                    printf("Error(line %d), invalid char in immediate\n",line_no);
+                                    ctx->error_count++;
+                                    continue;
+                                }
                             }
                         }
                         else if (t[0] == 'r' && t[1] >= '0' && t[1] <= '7' && !is_alphanumeric(t[2]))

@@ -343,8 +343,14 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             int val = 0;
             int m=0;
             int valid;
+            int pay_bits = 0;
+            int min_imm = 0;
+            int max_imm = 0;
 
             pay_mask = (1 << (WORD_BITS - 2)) - 1;
+            pay_bits = WORD_BITS-2;
+            min_imm = -(1<<(pay_bits-1));
+            max_imm = (1<<(pay_bits-1))-1;
 
             sym1[0] = '\0';
             sym2[0] = '\0';
@@ -457,6 +463,14 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
 
 
                 op_id = opcode_by_name(p,tok_len);
+                /*legality check for the op_id*/
+                if (op_id<0)
+                {
+                    printf("Error(line %d), unknown opcode\n",line_no);
+                    ctx->error_count++;
+                    continue;
+                }
+
                 valid = operands_legal(op_id,a1,a2);
                 if (!valid)
                 {
@@ -549,7 +563,19 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                 {
                     off++;
                 }
-
+                /*immediate range checks*/
+                if (has_imm1 && (imm1<min_imm || imm1>max_imm))
+                {
+                    printf("Error(line %d), immediate out of bounds\n",line_no);
+                    ctx->error_count++;
+                    continue;
+                }
+                if (has_imm2 && (imm2<min_imm || imm2>max_imm))
+                {
+                    printf("Error(line %d), immediate out of bounds\n",line_no);
+                    ctx->error_count++;
+                    continue;
+                }
                 /*register words*/
                 {
                     base_idx = (int)code_idx;
@@ -624,6 +650,12 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                             }
                             else
                             {
+                                if (sx->value <0 || sx->value >pay_mask)
+                                {
+                                    printf("Error(line %d), adress out of range for symbol'%s'\n",line_no,sx->name);
+                                    ctx->error_count++;
+                                    continue;
+                                }
                                 m = ((int)sx->value) & pay_mask;
                                 val = (m<<2) | ARE_REL;
                                 code[idx_op1] = (unsigned)val;
@@ -647,6 +679,10 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                             }
                             else
                             {
+                                if (sx->value <0 || sx->value >pay_mask)
+                                {
+                                    printf("Error(line %d), adress out of range for symbol'%s'\n",line_no,sx->name);
+                                }
                                 m = ((int)sx->value) & pay_mask;
                                 val = (m<<2) | ARE_REL;
                                 code[idx_op2] = (unsigned)val;

@@ -332,6 +332,18 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             char *start=NULL;
             char *endp= NULL;
             long v = 0;
+            int r1 = -1;
+            int r2 = -1;
+            int base_idx = 0;
+            int idx_reg = 0;
+            int idx_op1=0;
+            int idx_op2=0;
+            int pay = 0;
+            int pay_mask = 0;
+            int val = 0;
+            int m=0;
+
+            pay_mask = (1 << (WORD_BITS - 2)) - 1;
 
             sym1[0] = '\0';
             sym2[0] = '\0';
@@ -366,6 +378,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     else if (t[0] == 'r' && t[1] >= '0' && t[1] <= '7' && !is_alphanumeric(t[2]))
                     {
                         a1 = OP_REG;
+                        r1 = t[1] - '0';
                         s = t + 2;
                     }
                     else if (is_letter(*t))
@@ -419,6 +432,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         else if (t[0] == 'r' && t[1] >= '0' && t[1] <= '7' && !is_alphanumeric(t[2]))
                         {
                             a2 = OP_REG;
+                            r2 = t[1] - '0';
                             s = t + 2;
                         }
                         else if (is_letter(*t))
@@ -527,13 +541,28 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                 {
                     off++;
                 }
+
+                /*register words*/
+                {
+                    base_idx = (int)code_idx;
+                    idx_reg = base_idx +1;
+                    pay = 0;
+
+                    if (r1 >= 0) pay |= (r1 & 15) << 4;
+                    if (r2 >= 0) pay |= (r2 & 15);
+
+                    if (r1>= 0 || r2 >= 0)
+                    {
+                        val = ((pay & pay_mask)<<2)|ARE_ABS;
+                        if ((int)idx_reg < code_count)
+                        {
+                            code[idx_reg] = (unsigned)val;
+                        }
+                    }
+                }
                 {/* immediate operands words, ARE=ABS*/
-                    int base_idx = (int)code_idx;
-                    int idx_op1 = base_idx+1;
-                    int idx_op2;
-                    int val = 0;
-                    int pay_mask = (1 << (WORD_BITS-2))-1;
-                    int m;
+                    base_idx = (int)code_idx;
+                    idx_op1 = base_idx+1;
 
                     if (regs>= 1)
                     {

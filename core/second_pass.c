@@ -590,6 +590,65 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         code[idx_op2] = (unsigned)val;
                     }
                 }
+
+                /*direct\extern operands*/
+                {
+                    base_idx = (int)code_idx;
+                    idx_op1 = base_idx+1;
+                    if (regs>= 1)
+                    {
+                        idx_op1 += 1;
+                    }
+                    idx_op2 = idx_op1;
+                    if (a1 != OP_REG)
+                    {
+                        idx_op2 += 1;
+                    }
+                    /*op one*/
+                    if (a1 == OP_DIR && idx_op1 <code_count)
+                    {
+                        sx = sym_table_lookup(sym1);
+                        if (sx)
+                        {
+                            if (sx->kind == SYM_EXTERN)
+                            {
+                                code[idx_op1] = (unsigned)ARE_EXT;
+                            }
+                            else
+                            {
+                                m = ((int)sx->value) & pay_mask;
+                                val = (m<<2) | ARE_REL;
+                                code[idx_op1] = (unsigned)val;
+                            }
+                        }
+                        else
+                        {
+                            ctx->error_count++;
+                        }
+                    }
+                    /* op two*/
+                    if (num_ops == 2 && idx_op2 <code_count&& a2 == OP_DIR)
+                    {
+                        sx = sym_table_lookup(sym2);
+                        if (sx)
+                        {
+                            if (sx->kind == SYM_EXTERN)
+                            {
+                                code[idx_op2] = (unsigned)ARE_EXT;
+                            }
+                            else
+                            {
+                                m = ((int)sx->value) & pay_mask;
+                                val = (m<<2) | ARE_REL;
+                                code[idx_op2] = (unsigned)val;
+                            }
+                        }
+                        else
+                        {
+                            ctx->error_count++;
+                        }
+                    }
+                }
                 add_words = 1;
 
                 if (regs>=1) add_words+=1;

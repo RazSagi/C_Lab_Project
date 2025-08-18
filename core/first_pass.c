@@ -135,8 +135,11 @@ int run_first_pass(char *am_file,CtxAsm *ctx)
             /*only label without any other chars after it, error*/
             if (*t == '\0' || *t == ';')
             {
-                printf("Error (line %d), no command after label \n",line_number);
-                ctx->error_count++;
+                if (!sym_table_add(label, ctx->IC, SYM_CODE))
+                {
+                    printf("Error (line %d), duplicate for symbol '%s' \n", line_number, label);
+                    ctx->error_count++;
+                }
                 continue;
             }
 

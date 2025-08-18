@@ -12,6 +12,7 @@
 #include "preproc.h"
 #include "context_asm.h"
 #include "second_pass.h"
+#include "sym_table.h"
 
 
 int main(int argc, char *argv[])
@@ -40,6 +41,11 @@ int main(int argc, char *argv[])
             continue;
         }
         rc = run_preprocessor(in,out);
+        memset(&ctx, 0, sizeof(ctx));
+        ctx.IC = IC_START;
+        ctx.DC = 0;
+        ctx.error_count = 0;
+        sym_table_reset();
         if (rc != PREPROC_OK)
         {
             printf("Error: preprocessing '%s' failed (code %d)\n",in, rc);
@@ -63,7 +69,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                printf("First pass good\n");
+                printf("First pass success\n");
 
                 if (!run_second_pass(out, &ctx))
                 {
@@ -72,7 +78,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    printf("Second pass \n");
+                    printf("Second pass success \n");
                 }
             }
         }

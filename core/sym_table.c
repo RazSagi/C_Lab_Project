@@ -34,25 +34,32 @@ int sym_table_contains( char *name)
 /*adding to the symbols table*/
 int sym_table_add( char *name, int value, SymKind kind)
 {
+    Symbol *s;
     size_t length;
-    /*dupe symbol*/
-    if (sym_table_contains(name))
+
+    /*if symbol already exist*/
+    s = sym_table_lookup(name);
+    if (s)
     {
+        /*can be repeated extern declration (2 files)*/
+        if (s->kind == SYM_EXTERN && kind == SYM_EXTERN)
+        {
+            return 1;
+        }
         return 0;
     }
-    /*too many symbols*/
+    /*table is full?*/
     if (g_sym_count >= SYM_TABLE_MAX)
     {
         return 0;
     }
 
-    length = strlen(name);
+    /*if not full and not dupe, adding symbol*/
+    length= strlen(name);
     memcpy(g_symbols[g_sym_count].name, name, length+1);
-
     g_symbols[g_sym_count].value = value;
     g_symbols[g_sym_count].kind = kind;
     g_symbols[g_sym_count].is_entry = 0;
-
     g_sym_count++;
     return 1;
 }

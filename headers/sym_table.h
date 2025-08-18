@@ -40,4 +40,6 @@ Symbol* sym_table_lookup( char *name);
 /*marking entry in symbol table*/
 int sym_table_mark_entry(char *name);
 
+
+
 #endif

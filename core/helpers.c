@@ -320,7 +320,7 @@ int encode_direct_extern(const char *symname,unsigned *code, int idx,int line_no
     Symbol *sx = sym_table_lookup((char*)symname);
     if (!sx)
     {
-        printf("Error(line %d), undifined symbol '%s'\n", line_no,symname);
+        printf("Error(line %d), undefined symbol '%s'\n", line_no,symname);
         ctx->error_count++;
         return 0;
     }
@@ -335,6 +335,6 @@ int encode_direct_extern(const char *symname,unsigned *code, int idx,int line_no
         ctx->error_count++;
         return 0;
     }
-    code[idx] = (((unsigned)sx->value && pay_mask) << 2) | ARE_REL;
+    code[idx] = (((unsigned)sx->value & pay_mask) << 2) | ARE_REL;
     return 1;
 }

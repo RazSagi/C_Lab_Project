@@ -26,8 +26,8 @@ void skip_spaces( char **p)
 
 /*trying to extract label XXXX:
  * return 1 if valid label extracted
- * return 0 if its not a label (not error)
- * return -1 if its a label but not valid(reserved name\length)
+ * return 0 if it's not a label (not error)
+ * return -1 if it's a label but not valid(reserved name\length)
  */
 int extract_label(char **p,char out_label[MAX_LABEL_LENGTH])
 {
@@ -159,7 +159,7 @@ int check_directive_type( char **p,int line_number,CtxAsm *ctx)
         return DIR_EXTERN;
     }
 
-    /*if its aint fit any one of our saved words its means it started with . and didnt match = error , unkown directive*/
+    /*if its ain't fit any one of our saved words its means it started with . and didn't match = error , unknown directive*/
 
     printf("Error (line %d), unknown directive\n",line_number);
     ctx->error_count++;
@@ -171,7 +171,7 @@ int check_directive_type( char **p,int line_number,CtxAsm *ctx)
 
 
 }
-/*working with signded int*/
+/*working with signed int*/
 static int parse_signed_int( char **p, long *out)
 {
      char *s = *p;
@@ -282,7 +282,7 @@ int handle_string( char **p,CtxAsm *ctx, int line_number)
         }
         s++;
     }
-    /*must end with quote =)*/
+    /*must end with quote */
     if (*s != '"')
     {
         printf("Error (line %d), must end with quote\n",line_number);
@@ -336,7 +336,7 @@ static int parse_dim_brackets( char **p, long *out, int line_number)
 }
 
 /*same as handle string and handle data, handles mat
- *if we given less values that the dimensions we fill the rest of the matrix with zero
+ *if we have given less values that the dimensions we fill the rest of the matrix with zero
  *return an error if too many values given
  */
 int handle_mat( char **p,CtxAsm *ctx, int line_number)
@@ -349,7 +349,7 @@ int handle_mat( char **p,CtxAsm *ctx, int line_number)
     int count = 0;
 
     /*start to check if rows are ok followed by col
-     *only the dimension declartion */
+     *only the dimension declaration */
     if (!parse_dim_brackets(&s,&rows,line_number))
     {
         ctx->error_count++;
@@ -460,13 +460,13 @@ int handle_mat( char **p,CtxAsm *ctx, int line_number)
 }
 int handle_instruct( char **p, CtxAsm *ctx, int line_number)
 {
-     char *s = *p;
+    char *s = *p;
     int tok_len = 0;
-     char *op = NULL;
+    char *op = NULL;
     int num_ops = 0;
     int a1=OP_NONE;
     int a2=OP_NONE;
-     char *t = NULL;
+    char *t = NULL;
     long dum = 0;
     int words=1;
     int regs=0;
@@ -483,7 +483,7 @@ int handle_instruct( char **p, CtxAsm *ctx, int line_number)
     op = s;
     s += tok_len;
 
-    /*how many operands we expacting*/
+    /*how many operands we're expecting*/
     num_ops = opcode_count_operand(op,tok_len);
     if (num_ops<0)
     {
@@ -492,7 +492,7 @@ int handle_instruct( char **p, CtxAsm *ctx, int line_number)
         return 0;
     }
 
-    /*keeping it minimal, will add more later (adressing)*/
+    /*keeping it minimal, will add more later (addressing)*/
 
 
 

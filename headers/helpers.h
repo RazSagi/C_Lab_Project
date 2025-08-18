@@ -25,6 +25,7 @@ int operands_legal(int op_id, int a1, int a2);
 int validate_operand_delim(const char *s, int line_no,CtxAsm *ctx, int allow_comma);
 int validate_no_extra(const char *s, int line_no,CtxAsm *ctx);
 int encode_direct_extern(const char *symname,unsigned *code, int idx,int line_no,CtxAsm *ctx);
+int parse_indexed(char **ps,int *rA, int *rB);
 
 
 

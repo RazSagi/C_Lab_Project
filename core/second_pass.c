@@ -7,7 +7,6 @@
 #include "sym_table.h"
 #include "second_pass.h"
 
-#include <ctype.h>
 
 #include "parser.h"
 
@@ -359,12 +358,18 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
             int base_idx = 0;
             int idx_reg = 0;
             int idx_op1=0;
-            int idx_op2=0;
+
             int pay = 0;
             int val = 0;
             int m=0;
             int valid;
             unsigned pay_mask = PAYLOAD_MASK;
+            int idxs=0;
+            int idx1_ra = -1;
+            int idx2_ra = -1;
+            int idx1_rb = -1;
+            int idx2_rb = -1;
+
 
 
 
@@ -417,8 +422,23 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                             t++;
                         }
                         sym1[n] = '\0';
-                        a1 = OP_DIR;
-                        s = t;
+                        if (*t == '[')
+                        {
+                            if (!parse_indexed(&t,&idx1_ra,&idx1_rb))
+                            {
+                                printf("Error(line %d), invalid index\n",line_no);
+                                ctx->error_count++;
+                                continue;
+                            }
+                            a1 = OP_IDX;
+                            s = t;
+                            idxs++;
+                        }
+                        else
+                        {
+                            a1 = OP_DIR;
+                            s = t;
+                        }
                         if (!validate_operand_delim(s, line_no, ctx, 1)) continue;
 
                     }
@@ -476,8 +496,22 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                                 t++;
                             }
                             sym2[n] = '\0';
-                            a2 = OP_DIR;
-                            s = t;
+                            if (*t == '[')
+                            {
+                                if (!parse_indexed(&t, &idx2_ra, &idx2_rb))
+                                {
+                                    ctx->error_count++;
+                                    continue;
+                                }
+                                a2 = OP_IDX;
+                                s  = t;
+                                idxs++;
+                            }
+                            else
+                            {
+                                a2 = OP_DIR;
+                                s  = t;
+                            }
                             if (!validate_operand_delim(s, line_no, ctx, 0)) continue;
                         }
                         else
@@ -552,7 +586,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                 }
 
                 regs = (a1 == OP_REG) + (a2 == OP_REG);
-                non_regs = (a1 != OP_REG) + (a2 != OP_REG);
+                non_regs = (a1 != OP_REG && a1 != OP_IDX) + (a2 != OP_REG && a2 != OP_IDX);
 
                 if (regs>= 1)
                 {
@@ -560,7 +594,7 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                 }
 
                 /*extern for operand 1*/
-                if (a1 == OP_DIR && sym1[0] !='\0')
+                if ((a1 == OP_DIR|| a1 == OP_IDX) && sym1[0] !='\0')
                 {
                     sx = sym_table_lookup(sym1);
                     if (sx&&sx->kind == SYM_EXTERN)
@@ -578,12 +612,10 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     }
 
                 }
-                if (a1 != OP_REG)
-                {
-                    off++;/* took one non reg operand word*/
-                }
+                if (a1 == OP_IMM || a1 == OP_DIR) off++;
+                else if (a1 == OP_IDX) off+=2;
                 /*extern for operand 2 */
-                if (num_ops == 2 && a2 == OP_DIR && sym2[0] !='\0')
+                if (num_ops == 2 && (a2 == OP_DIR || a2 == OP_IDX) && sym2[0] !='\0')
                 {
                     sx = sym_table_lookup(sym2);
                     if (sx&&sx->kind == SYM_EXTERN)
@@ -601,9 +633,10 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                     }
 
                 }
-                if (num_ops == 2 && a2 !=OP_REG)
+                if (num_ops == 2)
                 {
-                    off++;
+                    if (a2 == OP_IMM || a2 == OP_DIR) off++;
+                    else if (a2 == OP_IDX) off += 2;
                 }
                 /*immediate range checks*/
                 if (has_imm1 && (imm1<IMM_MIN || imm1>IMM_MAX))
@@ -636,67 +669,72 @@ int run_second_pass(char *am_file,CtxAsm *ctx)
                         }
                     }
                 }
-                {/* immediate operands words, ARE=ABS*/
-                    base_idx = (int)code_idx;
-                    idx_op1 = base_idx+1;
-
-                    if (regs>= 1)
-                    {
-                        idx_op1 += 1;
-                    }
-                    idx_op2 = idx_op1;
-
-                    if (a1 != OP_REG)
-                    {
-                        idx_op2 += 1;
-                    }
-                    /*imm in op 1*/
-                    if (has_imm1 && idx_op1 <code_count)
-                    {
-                        m = ((int)imm1) & pay_mask;
-                        val = (m<<2) | ARE_ABS;
-                        code[idx_op1] = (unsigned)val;
-                    }
-
-                    /*imm in op 2*/
-                    if (has_imm2 && idx_op2 <code_count)
-                    {
-                        m = ((int)imm2) & pay_mask;
-                        val = (m<<2) | ARE_ABS;
-                        code[idx_op2] = (unsigned)val;
-                    }
-                }
-
-                /*direct\extern operands*/
+                /*this will calc payload words in order after op code
+                 *IMM is one word
+                 *DIR is one word(encode_direct_extern)
+                 *IDX:base label word (encode_direct) to index-reg word*/
                 {
-                    base_idx = (int)code_idx;
-                    idx_op1 = base_idx+1;
-                    if (regs>= 1)
+                    idx_op1 = (int)code_idx + 1;
+                    if (regs >= 1) idx_op1 += 1;
+                    /* op 1*/
+                    if (a1 == OP_IMM)
                     {
+                        m = ((int)imm1) & PAYLOAD_MASK;
+                        val = (m << 2) | ARE_ABS;
+                        if (idx_op1 < code_count) code[idx_op1] = (unsigned)val;
                         idx_op1 += 1;
                     }
-                    idx_op2 = idx_op1;
-                    if (a1 != OP_REG)
+                    else if (a1 == OP_DIR || a1 == OP_IDX)
                     {
-                        idx_op2 += 1;
+                        if (idx_op1 < code_count)
+                        {
+                            if (!encode_direct_extern(sym1, code, idx_op1, line_no, ctx)) continue;
+                        }
+                        idx_op1 += 1;
+
+                        if (a1 == OP_IDX)
+                        {
+                            pay = 0;
+                            if (idx1_ra >= 0) pay |= (idx1_ra & 15) << 4;
+                            if (idx1_rb >= 0) pay |= (idx1_rb & 15);
+                            val = ((pay & PAYLOAD_MASK) << 2) | ARE_ABS;
+                            if (idx_op1 < code_count) code[idx_op1] = (unsigned)val;
+                            idx_op1 += 1;
+                        }
                     }
-                    /*op one*/
-                    if (a1 == OP_DIR && idx_op1 <code_count)
+                    if (num_ops == 2)
                     {
-                        if (!encode_direct_extern(sym1, code, idx_op1, line_no, ctx)) continue;
-                    }
-                    /* op two*/
-                    if (num_ops == 2 && idx_op2 <code_count&& a2 == OP_DIR)
-                    {
-                        if (!encode_direct_extern(sym2, code, idx_op2, line_no, ctx)) continue;
+                        if (a2 == OP_IMM)
+                        {
+                            m = ((int)imm2) & PAYLOAD_MASK;
+                            val = (m << 2) | ARE_ABS;
+                            if (idx_op1 < code_count) code[idx_op1] = (unsigned)val;
+                            idx_op1 += 1;
+                        }
+                        else if (a2 == OP_DIR || a2 == OP_IDX)
+                        {
+                            if (idx_op1 < code_count)
+                            {
+                                if (!encode_direct_extern(sym2, code, idx_op1, line_no, ctx)) continue;
+                            }
+                            idx_op1 += 1; /* base label word */
+
+                            if (a2 == OP_IDX)
+                            {
+                                pay = 0;
+                                if (idx2_ra >= 0) pay |= (idx2_ra & 15) << 4;
+                                if (idx2_rb >= 0) pay |= (idx2_rb & 15);
+                                val = ((pay & PAYLOAD_MASK) << 2) | ARE_ABS;
+                                if (idx_op1 < code_count) code[idx_op1] = (unsigned)val;
+                                idx_op1 += 1;
+                            }
+                        }
                     }
                 }
                 add_words = 1;
-
                 if (regs>=1) add_words+=1;
-
                 add_words+=(unsigned)non_regs;
-
+                add_words+=(unsigned)(idxs*2);
                 ic+=add_words;
                 code_idx+=add_words;
             }

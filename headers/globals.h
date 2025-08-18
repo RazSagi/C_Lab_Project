@@ -33,6 +33,7 @@
 #define OP_IMM  1
 #define OP_DIR  2
 #define OP_REG  3
+#define OP_IDX 4
 
 #define BASE4_STR_MAX 32
 #define FILE_EXT_OB ".ob"
@@ -53,6 +54,10 @@
 #define PAYLOAD_MASK ((1u << PAYLOAD_BITS) - 1u)
 #define IMM_MIN (-(1L << (PAYLOAD_BITS - 1)))
 #define IMM_MAX ((1L << (PAYLOAD_BITS - 1)) - 1L)
+
+#define OP_IDX 4
+
+#define ADDR_ENC(x) ((unsigned)(x))
 
 
 

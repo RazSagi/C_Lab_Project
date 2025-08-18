@@ -335,6 +335,30 @@ static int parse_dim_brackets( char **p, long *out, int line_number)
     return 1;
 }
 
+/*parsing [rx][ry] and advance the *q to the second ']' on success*/
+static int parse_idx_regs(char **q)
+{
+    char *u = *q;
+    if (*u != '[') return 0;
+    u++;
+    if (*u != 'r') return 0;
+    u++;
+    if (*u < '0' || *u > '7') return 0;
+    u++;
+    if (*u != ']') return 0;
+    u++;
+    if (*u != '[') return 0;
+    u++;
+    if (*u != 'r') return 0;
+    u++;
+    if (*u < '0' || *u > '7') return 0;
+    u++;
+    if (*u != ']') return 0;
+    u++;
+    *q = u;
+    return 1;
+}
+
 /*same as handle string and handle data, handles mat
  *if we have given less values that the dimensions we fill the rest of the matrix with zero
  *return an error if too many values given
@@ -467,10 +491,12 @@ int handle_instruct( char **p, CtxAsm *ctx, int line_number)
     int a1=OP_NONE;
     int a2=OP_NONE;
     char *t = NULL;
+    char *u = NULL;
     long dum = 0;
     int words=1;
     int regs=0;
     int non_regs=0;
+    int idxs= 0;
 
     /*checking if its even valid op code*/
     skip_spaces(&s);
@@ -526,8 +552,25 @@ int handle_instruct( char **p, CtxAsm *ctx, int line_number)
             {
                 t++;
             }
-            a1=OP_DIR;
-            s=t;
+            /*index form*/
+            if (*t == '[')
+            {
+                u = t;
+                if (!parse_idx_regs(&u))
+                {
+                    printf("Error (line %d), invalid indexed addressing \n",line_number);
+                    ctx->error_count++;
+                    return 0;
+                }
+                a1=OP_IDX;
+                s = u;
+            }
+            else
+            {
+                a1 =OP_DIR;
+                s=t;
+            }
+
         }
         else
         {
@@ -581,14 +624,23 @@ int handle_instruct( char **p, CtxAsm *ctx, int line_number)
             {
                 t++;
             }
-            a2=OP_DIR;
-            s=t;
-        }
-        else
-        {
-            printf("Error (line %d), missing second operand\n",line_number);
-            ctx->error_count++;
-            return 0;
+            if (*t == '[')
+            {
+                u = t;
+                if (!parse_idx_regs(&u))
+                {
+                    printf("Error (line %d), invalid indexed addressing syntax\n",line_number);
+                    ctx->error_count++;
+                    return 0;
+                }
+                a2 = OP_IDX;
+                s  = u;
+            }
+            else
+            {
+                a2=OP_DIR;
+                s=t;
+            }
         }
     }
 
@@ -598,24 +650,32 @@ int handle_instruct( char **p, CtxAsm *ctx, int line_number)
      *reg one word total for one or two reg
      */
 
-    if (num_ops==1)
+    regs = 0;
+    idxs = 0;
+    non_regs = 0;
+
+    if (num_ops >= 1)
     {
-        words+=1;
+        if (a1 == OP_REG) regs = regs + 1;
+        else if (a1 == OP_IDX) idxs = idxs + 1;
+        else non_regs = non_regs + 1;
     }
-    else if (num_ops==2)
+
+
+    if (num_ops == 2)
     {
-        regs = (a1 == OP_REG) + (a2 == OP_REG);
-        non_regs = (a1 != OP_REG) + (a2 != OP_REG);
-        if (regs>=1)
-        {
-            words+=1;
-        }
-        words+=non_regs;
+        if (a2 == OP_REG) regs = regs + 1;
+        else if (a2 == OP_IDX) idxs = idxs + 1;
+        else non_regs = non_regs + 1;
     }
+
+    if (regs >= 1) words = words + 1;
+    words = words + non_regs;
+    words = words + (idxs * 2);
     ctx->IC += words;
     *p=s;
     return 1;
-
 }
+
 
 

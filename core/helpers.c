@@ -8,7 +8,7 @@
 #include "sym_table.h"
 /* Array of Directives*/
 static  char *directives[] = {
-    ".data", ".string", ".entry", ".extern", NULL
+    ".data", ".string", ".entry", ".extern", ".mat", NULL
 };
 
 /*Array of Instructions*/
@@ -336,5 +336,34 @@ int encode_direct_extern(const char *symname,unsigned *code, int idx,int line_no
         return 0;
     }
     code[idx] = (((unsigned)sx->value & pay_mask) << 2) | ARE_REL;
+    return 1;
+}
+
+/*parse indexed operand of the form [rX][rY]*/
+int parse_indexed(char **ps,int *rA, int *rB)
+{
+    char *p = *ps;
+
+    if (*p != '[') return 0;
+    p++;
+    if (*p != 'r') return 0;
+    p++;
+    if (*p < '0' || *p > '7') return 0;
+    *rA = *p - '0';
+    p++;
+    if (*p != ']') return 0;
+    p++;
+
+    if (*p != '[') return 0;
+    p++;
+    if (*p != 'r') return 0;
+    p++;
+    if (*p < '0' || *p > '7') return 0;
+    *rB = *p - '0';
+    p++;
+    if (*p != ']') return 0;
+    p++;
+
+    *ps = p; /* advance past last bracket */
     return 1;
 }

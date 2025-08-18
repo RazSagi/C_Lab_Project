@@ -29,11 +29,11 @@
 #define DC_START 0
 #define MAX_DATA 256
 
-#define OP_NONE 0
-#define OP_IMM  1
-#define OP_DIR  2
-#define OP_REG  3
-#define OP_IDX 4
+#define OP_NONE -1
+#define OP_IMM 0
+#define OP_DIR 1
+#define OP_IDX 2
+#define OP_REG 3
 
 #define BASE4_STR_MAX 32
 #define FILE_EXT_OB ".ob"
@@ -55,7 +55,7 @@
 #define IMM_MIN (-(1L << (PAYLOAD_BITS - 1)))
 #define IMM_MAX ((1L << (PAYLOAD_BITS - 1)) - 1L)
 
-#define OP_IDX 4
+
 
 #define ADDR_ENC(x) ((unsigned)(x))
 

@@ -1,4 +1,4 @@
-This project made by Raz Sagi - 206367088
+This project made by Raz Sagi - 206367088 and got 96 grade
 to execute this assembler
 1. open terminal in the project folder
 2. write  - make and press enter
